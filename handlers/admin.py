@@ -250,10 +250,38 @@ async def set_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     label = STATUS_LABELS.get(key, key)
     async with get_session() as session:
         ok = await update_order_status_by_code(session, code, label)
-    if not ok:
+        # Fetch newest order and its user to display updated details
+        order = await find_order_by_code(session, code)
+        user = None
+        if order and getattr(order, "user_id", None) is not None:
+            from sqlalchemy import select
+            user_res = await session.execute(select(User).where(User.id == order.user_id))
+            user = user_res.scalars().first()
+
+    if not ok or not order:
         await query.edit_message_text("به‌روزرسانی وضعیت ناموفق بود.", reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
         return 1
-    # After update, show details again
-    # Reuse order detail view
-    update.effective_message.callback_data = f"ORDERS_ADMIN:CODE:{code}"
-    return await admin_order_code_selected(update, context)
+
+    # Show a quick alert for confirmation
+    try:
+        await query.answer(text=f"وضعیت سفارش به «{label}» تغییر کرد.", show_alert=True)
+    except Exception:
+        pass
+
+    full_name = getattr(user, "full_name", "—") if user else "—"
+    username = getattr(user, "username", None) if user else None
+    phone = getattr(user, "phone_number", "—") if user else "—"
+    text = (
+        f"مشخصات کاربر:\n"
+        f"نام کامل: {full_name}\n"
+        f"نام‌کاربری: {username or '—'}\n"
+        f"موبایل: {phone}\n\n"
+        f"جزئیات سفارش:\n"
+        f"کد پیگیری: {order.tracking_code}\n"
+        f"وضعیت: {order.status}\n"
+        f"دسته: {order.category_key or '—'}\n"
+        f"آیتم: {order.option_title or '—'}\n"
+    )
+    kb = admin_order_actions_kb(username, code)
+    await query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    return 1
