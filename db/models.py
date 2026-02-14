@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, DateTime, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import Integer, String, DateTime, func, ForeignKey
 
 
 class Base(DeclarativeBase):
@@ -17,4 +17,28 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     category_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     option_title: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    full_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    items: Mapped[list["Item"]] = relationship("Item", back_populates="category", cascade="all, delete-orphan")
+
+
+class Item(Base):
+    __tablename__ = "items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    category: Mapped[Category] = relationship("Category", back_populates="items")

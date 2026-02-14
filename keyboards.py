@@ -52,32 +52,29 @@ def website_kb(url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def helper_menu_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton("نگران وضعیت سلامتشون هستم", callback_data="HELPER:CATEGORY:HEALTH")],
-        [InlineKeyboardButton("میخوام بگم بیادشونم", callback_data="HELPER:CATEGORY:REMINDER")],
-        [InlineKeyboardButton("کاری دارن که من از راه دور نمیتوانم انجام دهم", callback_data="HELPER:CATEGORY:TASK")],
-        [InlineKeyboardButton("میخوام خوشحالشون کنم", callback_data="HELPER:CATEGORY:JOY")],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
-    ]
+def helper_menu_kb(categories: List[tuple[int, str]]) -> InlineKeyboardMarkup:
+    buttons: List[List[InlineKeyboardButton]] = []
+    for cid, title in categories:
+        buttons.append([InlineKeyboardButton(title, callback_data=f"HELPER:CATEGORY_ID:{cid}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")])
     return InlineKeyboardMarkup(buttons)
 
 
-def helper_options_kb(category_key: str, count: int = 3) -> InlineKeyboardMarkup:
+def helper_options_kb(category_id: int, count: int = 3) -> InlineKeyboardMarkup:
     """Build numeric options (1..count) for a helper category."""
     row: List[InlineKeyboardButton] = []
     for i in range(1, count + 1):
         row.append(
-            InlineKeyboardButton(str(i), callback_data=f"HELPER:OPTION:{category_key}:{i}")
+            InlineKeyboardButton(str(i), callback_data=f"HELPER:OPTION:{category_id}:{i}")
         )
     buttons = [row, [InlineKeyboardButton("⬅️ بازگشت", callback_data="HELPER:BACK:MENU")]]
     return InlineKeyboardMarkup(buttons)
 
 
-def helper_confirm_kb(category_key: str, idx: int) -> InlineKeyboardMarkup:
+def helper_confirm_kb(category_id: int, idx: int) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش", callback_data=f"HELPER:CONFIRM:{category_key}:{idx}")],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELPER:BACK:OPTIONS:{category_key}")],
+        [InlineKeyboardButton("ثبت سفارش", callback_data=f"HELPER:CONFIRM:{category_id}:{idx}")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELPER:BACK:OPTIONS:{category_id}")],
     ]
     return InlineKeyboardMarkup(buttons)
 

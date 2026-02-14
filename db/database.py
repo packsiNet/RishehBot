@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import text
 
-from db.models import Base
+from db.models import Base, Category, Item
 
 
 _engine: Optional[AsyncEngine] = None
@@ -32,6 +32,8 @@ async def init_db(db_url: Optional[str] = None) -> None:
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("SELECT 1"))
+    await _seed_initial_data()
+    await _ensure_order_columns()
 
 
 def get_session() -> AsyncSession:
@@ -39,3 +41,60 @@ def get_session() -> AsyncSession:
         raise RuntimeError("DB not initialized")
     return SessionLocal()
 
+
+async def _seed_initial_data() -> None:
+    if SessionLocal is None:
+        return
+    async with SessionLocal() as session:
+        # Check if categories exist
+        from sqlalchemy import select
+
+        res = await session.execute(select(Category))
+        existing = list(res.scalars().all())
+        if existing:
+            return
+
+        # Seed categories
+        cat_titles = [
+            "نگران وضعیت سلامتشون هستم",
+            "میخوام بگم بیادشونم",
+            "کاری دارن که من از راه دور نمیتوانم انجام دهم",
+            "میخوام خوشحالشون کنم",
+        ]
+        cats: list[Category] = [Category(title=t) for t in cat_titles]
+        session.add_all(cats)
+        await session.flush()
+
+        # Seed items per category (aligning with previous options)
+        items_by_idx = {
+            0: ["هماهنگی تماس پزشک", "یادآوری مصرف دارو", "چک‌این روزانه"],
+            1: ["ارسال پیام محبت‌آمیز", "یادآوری رویداد خانوادگی", "خبرگیری کوتاه"],
+            2: ["هماهنگی امور بانکی", "پرداخت قبوض", "پیگیری مراجعه حضوری"],
+            3: ["ارسال هدیه کوچک", "هماهنگی تماس تصویری", "ترتیب یک غافلگیری"],
+        }
+        for idx, cat in enumerate(cats):
+            titles = items_by_idx.get(idx, [])
+            session.add_all([Item(category_id=cat.id, title=t) for t in titles])
+        await session.commit()
+
+
+async def _ensure_order_columns() -> None:
+    if SessionLocal is None:
+        return
+    async with SessionLocal() as session:
+        result = await session.execute(text("PRAGMA table_info('orders')"))
+        cols = {row[1] for row in result.fetchall()}
+        alters: list[str] = []
+        if 'phone_number' not in cols:
+            alters.append("ALTER TABLE orders ADD COLUMN phone_number VARCHAR(32)")
+        if 'full_name' not in cols:
+            alters.append("ALTER TABLE orders ADD COLUMN full_name VARCHAR(128)")
+        if 'username' not in cols:
+            alters.append("ALTER TABLE orders ADD COLUMN username VARCHAR(64)")
+        for sql in alters:
+            try:
+                await session.execute(text(sql))
+            except Exception:
+                pass
+        if alters:
+            await session.commit()
