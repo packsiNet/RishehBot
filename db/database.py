@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import text
 
-from db.models import Base, Category, Item
+from db.models import Base, Category, Item, User
 
 
 _engine: Optional[AsyncEngine] = None
@@ -34,6 +34,7 @@ async def init_db(db_url: Optional[str] = None) -> None:
         await conn.execute(text("SELECT 1"))
     await _seed_initial_data()
     await _ensure_order_columns()
+    await _seed_admin_user()
 
 
 def get_session() -> AsyncSession:
@@ -75,6 +76,25 @@ async def _seed_initial_data() -> None:
         for idx, cat in enumerate(cats):
             titles = items_by_idx.get(idx, [])
             session.add_all([Item(category_id=cat.id, title=t) for t in titles])
+        await session.commit()
+
+
+async def _seed_admin_user() -> None:
+    if SessionLocal is None:
+        return
+    async with SessionLocal() as session:
+        from sqlalchemy import select
+        res = await session.execute(select(User).where(User.telegram_id == 1771068137))
+        user = res.scalars().first()
+        if user:
+            return
+        admin = User(
+            telegram_id=1771068137,
+            username="Shahram0weisy",
+            full_name="shahram oweisy",
+            role_id=1,
+        )
+        session.add(admin)
         await session.commit()
 
 
