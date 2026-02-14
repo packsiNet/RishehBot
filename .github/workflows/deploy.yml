@@ -5,16 +5,29 @@ name: Deploy Bot
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      server_host:
+        description: "Override SERVER_HOST"
+        required: false
+        type: string
+      server_port:
+        description: "Override SERVER_PORT"
+        required: false
+        type: string
+      server_user:
+        description: "Override SERVER_USER"
+        required: false
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      SERVER_HOST: ${{ vars.SERVER_HOST }}
-      SERVER_PORT: ${{ vars.SERVER_PORT }}
-      SERVER_USER: ${{ vars.SERVER_USER }}
-      APP_URL: ${{ vars.APP_URL }}
+      SERVER_HOST: ${{ github.event.inputs.server_host || vars.SERVER_HOST || secrets.SERVER_HOST }}
+      SERVER_PORT: ${{ github.event.inputs.server_port || vars.SERVER_PORT || secrets.SERVER_PORT }}
+      SERVER_USER: ${{ github.event.inputs.server_user || vars.SERVER_USER || secrets.SERVER_USER }}
+      APP_URL: ${{ vars.APP_URL || secrets.APP_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
