@@ -11,7 +11,8 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from data.mock_data import add_order
+from db.database import get_session
+from db.crud import create_order
 from keyboards import helper_menu_kb, helper_options_kb, helper_confirm_kb, after_confirm_kb
 
 
@@ -99,7 +100,12 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await query.answer()
     user_id = query.from_user.id
     tracking_code = _generate_tracking_code()
-    add_order(user_id, {"tracking_code": tracking_code, "status": "درحال انجام"})
+    category_key = context.user_data.get("helper_category")
+    idx = context.user_data.get("helper_option_idx")
+    option_list = CATEGORY_OPTIONS.get(category_key, [])
+    chosen = option_list[idx - 1] if isinstance(idx, int) and 0 < idx <= len(option_list) else None
+    async with get_session() as session:
+        await create_order(session, user_id, tracking_code, "درحال انجام", category_key=category_key, option_title=chosen)
     text = (
         "سفارش شما ثبت شد ✅\n\n"
         f"کد پیگیری: {tracking_code}\n"

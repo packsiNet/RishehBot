@@ -31,6 +31,9 @@ from handlers.helper import (
 from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected
 
 
+import asyncio
+from db.database import init_db
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -98,6 +101,8 @@ def main() -> None:
     token = os.getenv("BOT_TOKEN")
     if not token:
         raise RuntimeError("BOT_TOKEN env variable is required")
+    db_url = os.getenv("DB_URL", "sqlite+aiosqlite:///./data/app.db")
+    asyncio.run(init_db(db_url))
     app = build_app(token)
     logger.info("Bot is starting...")
     app.run_polling()

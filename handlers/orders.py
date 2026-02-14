@@ -10,7 +10,8 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from data.mock_data import get_orders_by_status, find_order
+from db.database import get_session
+from db.crud import get_orders_by_status as db_get_orders_by_status, find_order as db_find_order
 from keyboards import orders_menu_kb, orders_list_kb
 
 
@@ -40,7 +41,8 @@ async def orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_T
     _, _, filt = query.data.split(":", 2)
     user_id = query.from_user.id
     fa_status = STATUS_MAP.get(filt, "")
-    orders = get_orders_by_status(user_id, fa_status)
+    async with get_session() as session:
+        orders = await db_get_orders_by_status(session, user_id, fa_status)
     if not orders:
         await query.edit_message_text(
             f"هیچ سفارشی با وضعیت «{fa_status or '—'}» یافت نشد.",
@@ -48,7 +50,7 @@ async def orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_T
             parse_mode=ParseMode.HTML,
         )
         return 1
-    codes: List[str] = [o["tracking_code"] for o in orders]
+    codes: List[str] = [o.tracking_code for o in orders]
     await query.edit_message_text(
         "سفارش خود را انتخاب کنید:",
         reply_markup=orders_list_kb(codes),
@@ -65,20 +67,22 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer()
     _, _, code = query.data.split(":", 2)
     user_id = query.from_user.id
-    order = find_order(user_id, code)
+    async with get_session() as session:
+        order = await db_find_order(session, user_id, code)
     if not order:
         await query.edit_message_text(
             "سفارش موردنظر پیدا نشد.", reply_markup=orders_menu_kb(), parse_mode=ParseMode.HTML
         )
         return 1
-    status_text = order["status"]
-    text = f"وضعیت سفارش {order['tracking_code']}: {status_text}"
+    status_text = order.status
+    text = f"وضعیت سفارش {order.tracking_code}: {status_text}"
     # Rebuild last list for back
     filt = context.user_data.get("orders_list_status")
     fa_status = STATUS_MAP.get(filt, "")
     if fa_status:
         # Build codes again
-        codes = [o["tracking_code"] for o in get_orders_by_status(user_id, fa_status)]
+        async with get_session() as session:
+            codes = [o.tracking_code for o in await db_get_orders_by_status(session, user_id, fa_status)]
         kb = orders_list_kb(codes)
     else:
         kb = orders_menu_kb()
