@@ -84,7 +84,18 @@ jobs:
           sudo mkdir -p /opt/rishehbot
           sudo tar -xzf /tmp/rishehbot.tar.gz -C /opt/rishehbot --strip-components=1
           sudo bash /opt/rishehbot/deploy/install_server.sh
-          export BOT_TOKEN="${RESOLVED_BOT_TOKEN}"
+          # If this is the first deploy, require a BOT_TOKEN (via input or secret).
+          if [ -z "${RESOLVED_BOT_TOKEN}" ]; then
+            if [ -f /opt/rishehbot/.env ] && grep -q '^BOT_TOKEN=' /opt/rishehbot/.env; then
+              echo "Existing /opt/rishehbot/.env found; proceeding without bot_token input."
+              export BOT_TOKEN=""
+            else
+              echo "First-time deploy requires a BOT_TOKEN (provide as workflow input 'bot_token' or secret 'BOT_TOKEN')." >&2
+              exit 1
+            fi
+          else
+            export BOT_TOKEN="${RESOLVED_BOT_TOKEN}"
+          fi
           export SERVER_USER_VAR="${RESOLVED_USER}"
           sudo bash /opt/rishehbot/deploy/deploy_bot.sh "${BOT_TOKEN}" "${SERVER_USER_VAR}"
           sudo systemctl is-active --quiet rishehbot && echo "Service active" || (sudo journalctl -u rishehbot -n 50 --no-pager; exit 1)
