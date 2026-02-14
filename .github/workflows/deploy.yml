@@ -28,6 +28,15 @@ jobs:
         run: |
           python -m compileall -q .
 
+      - name: Resolve and validate deployment variables
+        run: |
+          echo "RESOLVED_HOST=${SERVER_HOST}" >> $GITHUB_ENV
+          echo "RESOLVED_PORT=${SERVER_PORT}" >> $GITHUB_ENV
+          echo "RESOLVED_USER=${SERVER_USER}" >> $GITHUB_ENV
+          if [ -z "${SERVER_PORT}" ]; then echo "RESOLVED_PORT=22" >> $GITHUB_ENV; fi
+          if [ -z "${SERVER_HOST}" ]; then echo "SERVER_HOST is not set" && exit 1; fi
+          if [ -z "${SERVER_USER}" ]; then echo "SERVER_USER is not set" && exit 1; fi
+
       - name: Create artifact
         run: |
           git archive --format=tar --prefix=rishehbot/ HEAD | gzip > rishehbot.tar.gz
@@ -39,17 +48,17 @@ jobs:
 
       - name: Upload artifact to server
         run: |
-          scp -o StrictHostKeyChecking=no -P "$SERVER_PORT" rishehbot.tar.gz "$SERVER_USER@$SERVER_HOST:/tmp/rishehbot.tar.gz"
+          scp -o StrictHostKeyChecking=no -P "${RESOLVED_PORT}" rishehbot.tar.gz "${RESOLVED_USER}@${RESOLVED_HOST}:/tmp/rishehbot.tar.gz"
 
       - name: Deploy on server
         run: |
-          ssh -o StrictHostKeyChecking=no -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" << EOF
+          ssh -o StrictHostKeyChecking=no -p "${RESOLVED_PORT}" "${RESOLVED_USER}@${RESOLVED_HOST}" << EOF
           set -e
           sudo mkdir -p /opt/rishehbot
           sudo tar -xzf /tmp/rishehbot.tar.gz -C /opt/rishehbot --strip-components=1
           sudo bash /opt/rishehbot/deploy/install_server.sh
           export BOT_TOKEN="${{ secrets.BOT_TOKEN }}"
-          export SERVER_USER_VAR="${{ vars.SERVER_USER }}"
+          export SERVER_USER_VAR="${RESOLVED_USER}"
           sudo bash /opt/rishehbot/deploy/deploy_bot.sh "${BOT_TOKEN}" "${SERVER_USER_VAR}"
           sudo systemctl is-active --quiet rishehbot && echo "Service active" || (sudo journalctl -u rishehbot -n 50 --no-pager; exit 1)
           EOF
