@@ -127,3 +127,51 @@ async def update_order_status_by_code(session: AsyncSession, tracking_code: str,
     order.status = new_status
     await session.commit()
     return True
+
+
+async def count_orders_by_status(session: AsyncSession, status: str) -> int:
+    from sqlalchemy import func
+    stmt = select(func.count(Order.id)).where(Order.status == status)
+    res = await session.execute(stmt)
+    return int(res.scalar_one())
+
+
+async def get_orders_paged_by_status(session: AsyncSession, status: str, offset: int, limit: int) -> List[Order]:
+    stmt = (
+        select(Order)
+        .where(Order.status == status)
+        .order_by(Order.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
+async def count_users(session: AsyncSession) -> int:
+    from sqlalchemy import func
+    stmt = select(func.count(User.id))
+    res = await session.execute(stmt)
+    return int(res.scalar_one())
+
+
+async def get_users_paged(session: AsyncSession, offset: int, limit: int) -> List[User]:
+    stmt = select(User).order_by(User.created_at.desc()).offset(offset).limit(limit)
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
+async def get_user_by_id(session: AsyncSession, user_id: int) -> Optional[User]:
+    stmt = select(User).where(User.id == user_id)
+    res = await session.execute(stmt)
+    return res.scalars().first()
+
+
+async def set_user_admin(session: AsyncSession, user_id: int) -> bool:
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        return False
+    if user.role_id != 1:
+        user.role_id = 1
+        await session.commit()
+    return True

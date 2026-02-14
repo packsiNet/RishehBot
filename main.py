@@ -30,7 +30,19 @@ from handlers.helper import (
     handle_contact,
 )
 from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected
-from handlers.admin import open_admin_orders_menu, admin_orders_filter_selected, admin_order_code_selected, open_status_menu, set_status
+from handlers.admin import (
+    open_admin_orders_menu,
+    admin_orders_filter_selected,
+    admin_order_code_selected,
+    admin_orders_change_page,
+    open_status_menu,
+    set_status,
+    open_admin_users_menu,
+    admin_users_open,
+    admin_users_change_page,
+    admin_user_selected,
+    admin_make_user_admin,
+)
 
 
 import asyncio
@@ -92,9 +104,17 @@ def build_app(token: str) -> Application:
                 # Admin orders section
                 CallbackQueryHandler(open_admin_orders_menu, pattern=r"^NAV:ADMIN_ORDERS$"),
                 CallbackQueryHandler(admin_orders_filter_selected, pattern=r"^ORDERS_ADMIN:FILTER:.*"),
+                CallbackQueryHandler(admin_orders_change_page, pattern=r"^ORDERS_ADMIN:PAGE:[A-Z_]+:\d+$"),
                 CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\d{6}$"),
                 CallbackQueryHandler(open_status_menu, pattern=r"^ORDERS_ADMIN:STATUSMENU:\d{6}$"),
                 CallbackQueryHandler(set_status, pattern=r"^ORDERS_ADMIN:SETSTATUS:\d{6}:[A-Z_]+$"),
+                CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\d{6}:\d+$"),
+                # Admin users section
+                CallbackQueryHandler(open_admin_users_menu, pattern=r"^NAV:ADMIN_USERS$"),
+                CallbackQueryHandler(admin_users_open, pattern=r"^ADMIN_USERS:OPEN$"),
+                CallbackQueryHandler(admin_users_change_page, pattern=r"^ADMIN_USERS:PAGE:\d+$"),
+                CallbackQueryHandler(admin_user_selected, pattern=r"^ADMIN_USERS:USER:\d+:\d+$"),
+                CallbackQueryHandler(admin_make_user_admin, pattern=r"^ADMIN_USERS:MAKE_ADMIN:\d+:\d+$"),
                 # Fallback last
                 CallbackQueryHandler(invalid_callback),
             ]

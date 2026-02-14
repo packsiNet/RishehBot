@@ -11,9 +11,24 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from db.database import get_session
-from db.crud import get_all_orders_by_status, find_order_by_code, update_order_status_by_code
-from keyboards import admin_orders_menu_kb, admin_orders_list_kb, admin_order_actions_kb, admin_status_menu_kb
+from db.crud import (
+    get_all_orders_by_status,
+    find_order_by_code,
+    update_order_status_by_code,
+    count_orders_by_status,
+    get_orders_paged_by_status,
+)
+from keyboards import (
+    admin_orders_menu_kb,
+    admin_orders_list_kb,
+    admin_order_actions_kb,
+    admin_status_menu_kb,
+    admin_users_menu_kb,
+    admin_users_list_kb,
+    admin_user_actions_kb,
+)
 from db.models import User
+from db.crud import count_users, get_users_paged, get_user_by_id, set_user_admin
 
 
 STATUS_MAP = {
@@ -34,14 +49,100 @@ async def open_admin_orders_menu(update: Update, context: ContextTypes.DEFAULT_T
     return 1
 
 
+async def open_admin_users_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text("مدیریت کاربران", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
+    return 1
+
+
+PAGE_SIZE = 10
+
+
+async def open_users_list(update: Update, context: ContextTypes.DEFAULT_TYPE, page: int = 0) -> int:
+    query = update.callback_query
+    await query.answer()
+    offset = page * PAGE_SIZE
+    async with get_session() as session:
+        total = await count_users(session)
+        users = await get_users_paged(session, offset, PAGE_SIZE)
+    btns: List[tuple[int, str]] = []
+    for u in users:
+        label = f"{u.full_name or '—'} | @{u.username}" if u.username else f"{u.full_name or '—'}"
+        btns.append((u.id, label))
+    has_prev = page > 0
+    has_next = (offset + PAGE_SIZE) < total
+    header = f"تعداد کل کاربران: {total}\n\nسفارش‌دهندگان ثبت‌شده:" if total else "کاربری یافت نشد."
+    await query.edit_message_text(header, reply_markup=admin_users_list_kb(btns, page, has_prev, has_next), parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def admin_users_open(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    return await open_users_list(update, context, 0)
+
+
+async def admin_users_change_page(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    _, _, page_str = query.data.split(":", 2)
+    page = int(page_str)
+    return await open_users_list(update, context, page)
+
+
+async def admin_user_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, user_id_str, page_str = query.data.split(":", 3)
+    user_id = int(user_id_str)
+    page = int(page_str)
+    async with get_session() as session:
+        user = await get_user_by_id(session, user_id)
+    if not user:
+        await query.edit_message_text("کاربر یافت نشد.", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
+        return 1
+    text = (
+        f"مشخصات کاربر:\n"
+        f"نام کامل: {user.full_name or '—'}\n"
+        f"نام‌کاربری: @{user.username}" if user.username else "نام‌کاربری: —"
+    )
+    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page), parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def admin_make_user_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, user_id_str, page_str = query.data.split(":", 3)
+    user_id = int(user_id_str)
+    page = int(page_str)
+    async with get_session() as session:
+        ok = await set_user_admin(session, user_id)
+        user = await get_user_by_id(session, user_id)
+    if not ok or not user:
+        await query.edit_message_text("تغییر نقش ناموفق بود.", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
+        return 1
+    text = (
+        f"نقش کاربر به ادمین تغییر کرد.\n\n"
+        f"نام کامل: {user.full_name or '—'}\n"
+        f"نام‌کاربری: @{user.username}" if user.username else "نام‌کاربری: —"
+    )
+    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page), parse_mode=ParseMode.HTML)
+    return 1
+
+
+PAGE_SIZE_ORDERS = 10
+
+
 async def admin_orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     _, _, filt = query.data.split(":", 2)
     fa_status = STATUS_MAP.get(filt, "")
+    page = 0
+    offset = page * PAGE_SIZE_ORDERS
     async with get_session() as session:
-        orders = await get_all_orders_by_status(session, fa_status)
-    if not orders:
+        total = await count_orders_by_status(session, fa_status)
+        orders = await get_orders_paged_by_status(session, fa_status, offset, PAGE_SIZE_ORDERS)
+    if not orders and total == 0:
         await query.edit_message_text(
             f"هیچ سفارشی با وضعیت «{fa_status or '—'}» یافت نشد.",
             reply_markup=admin_orders_menu_kb(),
@@ -49,17 +150,25 @@ async def admin_orders_filter_selected(update: Update, context: ContextTypes.DEF
         )
         return 1
     codes: List[str] = [o.tracking_code for o in orders]
+    has_prev = False
+    has_next = (offset + PAGE_SIZE_ORDERS) < total
     await query.edit_message_text(
-        "سفارش خود را انتخاب کنید:", reply_markup=admin_orders_list_kb(codes), parse_mode=ParseMode.HTML
+        "سفارش خود را انتخاب کنید:",
+        reply_markup=admin_orders_list_kb(codes, filt, page, has_prev, has_next),
+        parse_mode=ParseMode.HTML,
     )
     context.user_data["admin_orders_list_status"] = filt
+    context.user_data["admin_orders_page"] = page
     return 1
 
 
 async def admin_order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    _, _, code = query.data.split(":", 2)
+    parts = query.data.split(":")
+    # ORDERS_ADMIN:CODE:<code> or ORDERS_ADMIN:CODE:<code>:<page>
+    code = parts[2]
+    page = int(parts[3]) if len(parts) > 3 and parts[3].isdigit() else context.user_data.get("admin_orders_page", 0)
     async with get_session() as session:
         order = await find_order_by_code(session, code)
         user = None
@@ -90,13 +199,31 @@ async def admin_order_code_selected(update: Update, context: ContextTypes.DEFAUL
     # Rebuild last list for back
     filt = context.user_data.get("admin_orders_list_status")
     fa_status = STATUS_MAP.get(filt, "")
-    if fa_status:
-        async with get_session() as session:
-            codes = [o.tracking_code for o in await get_all_orders_by_status(session, fa_status)]
-        kb = admin_order_actions_kb(username, code)
-    else:
-        kb = admin_order_actions_kb(username, code)
+    kb = admin_order_actions_kb(username, code)
     await query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def admin_orders_change_page(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, filt, page_str = query.data.split(":", 3)
+    page = int(page_str)
+    fa_status = STATUS_MAP.get(filt, "")
+    offset = page * PAGE_SIZE_ORDERS
+    async with get_session() as session:
+        total = await count_orders_by_status(session, fa_status)
+        orders = await get_orders_paged_by_status(session, fa_status, offset, PAGE_SIZE_ORDERS)
+    codes: List[str] = [o.tracking_code for o in orders]
+    has_prev = page > 0
+    has_next = (offset + PAGE_SIZE_ORDERS) < total
+    await query.edit_message_text(
+        "سفارش خود را انتخاب کنید:",
+        reply_markup=admin_orders_list_kb(codes, filt, page, has_prev, has_next),
+        parse_mode=ParseMode.HTML,
+    )
+    context.user_data["admin_orders_list_status"] = filt
+    context.user_data["admin_orders_page"] = page
     return 1
 
 

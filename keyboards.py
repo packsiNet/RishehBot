@@ -25,6 +25,7 @@ def admin_main_menu() -> InlineKeyboardMarkup:
     """Admin main menu with access to global orders list."""
     buttons = [
         [InlineKeyboardButton("لیست سفارشات ثبت شده", callback_data="NAV:ADMIN_ORDERS")],
+        [InlineKeyboardButton("مدیریت کاربران", callback_data="NAV:ADMIN_USERS")],
         [InlineKeyboardButton("درباره ریشه", callback_data="NAV:ABOUT")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -106,13 +107,26 @@ def orders_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
-    """Build a vertical list of tracking code buttons with a back."""
-    buttons: List[List[InlineKeyboardButton]] = []
+def admin_orders_list_kb(tracking_codes: List[str], filt: str, page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
+    """Build a two-column paginated list of tracking code buttons with navigation."""
+    rows: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
     for code in tracking_codes:
-        buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS:CODE:{code}")])
-    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
-    return InlineKeyboardMarkup(buttons)
+        row.append(InlineKeyboardButton(code, callback_data=f"ORDERS_ADMIN:CODE:{code}:{page}"))
+        if len(row) == 2:
+            rows.append(row)
+            row = []
+    if row:
+        rows.append(row)
+    nav: List[InlineKeyboardButton] = []
+    if has_prev:
+        nav.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ORDERS_ADMIN:PAGE:{filt}:{page-1}"))
+    if has_next:
+        nav.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ORDERS_ADMIN:PAGE:{filt}:{page+1}"))
+    if nav:
+        rows.append(nav)
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
+    return InlineKeyboardMarkup(rows)
 
 
 def admin_orders_menu_kb() -> InlineKeyboardMarkup:
@@ -157,5 +171,43 @@ def admin_status_menu_kb(code: str) -> InlineKeyboardMarkup:
     for key, label in items:
         buttons.append([InlineKeyboardButton(label, callback_data=f"ORDERS_ADMIN:SETSTATUS:{code}:{key}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ORDERS_ADMIN:CODE:{code}")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def admin_users_menu_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("لیست کاربران", callback_data="ADMIN_USERS:OPEN")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def admin_users_list_kb(user_buttons: List[tuple[int, str]], page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
+    # Build 2 buttons per row
+    rows: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
+    for uid, label in user_buttons:
+        row.append(InlineKeyboardButton(label, callback_data=f"ADMIN_USERS:USER:{uid}:{page}"))
+        if len(row) == 2:
+            rows.append(row)
+            row = []
+    if row:
+        rows.append(row)
+    nav_row: List[InlineKeyboardButton] = []
+    if has_prev:
+        nav_row.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ADMIN_USERS:PAGE:{page-1}"))
+    if has_next:
+        nav_row.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ADMIN_USERS:PAGE:{page+1}"))
+    if nav_row:
+        rows.append(nav_row)
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_USERS")])
+    return InlineKeyboardMarkup(rows)
+
+
+def admin_user_actions_kb(user_id: int, return_page: int) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("این کاربر ادمین است", callback_data=f"ADMIN_USERS:MAKE_ADMIN:{user_id}:{return_page}")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ADMIN_USERS:PAGE:{return_page}")],
+    ]
     return InlineKeyboardMarkup(buttons)
 
