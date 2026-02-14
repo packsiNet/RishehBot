@@ -107,6 +107,15 @@ def orders_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+def orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
+    """Build a vertical list of tracking code buttons with a back."""
+    buttons: List[List[InlineKeyboardButton]] = []
+    for code in tracking_codes:
+        buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS:CODE:{code}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
+    return InlineKeyboardMarkup(buttons)
+
+
 def admin_orders_list_kb(tracking_codes: List[str], filt: str, page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
     """Build a two-column paginated list of tracking code buttons with navigation."""
     rows: List[List[InlineKeyboardButton]] = []
@@ -139,12 +148,7 @@ def admin_orders_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def admin_orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
-    buttons: List[List[InlineKeyboardButton]] = []
-    for code in tracking_codes:
-        buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS_ADMIN:CODE:{code}")])
-    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
-    return InlineKeyboardMarkup(buttons)
+ 
 
 
 def admin_order_actions_kb(username: str | None, code: str) -> InlineKeyboardMarkup:
