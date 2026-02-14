@@ -5,7 +5,7 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import Order, Category, Item
+from db.models import Order, Category, Item, User
 
 
 async def create_order(
@@ -15,9 +15,6 @@ async def create_order(
     status: str,
     category_key: str | None = None,
     option_title: str | None = None,
-    phone_number: str | None = None,
-    full_name: str | None = None,
-    username: str | None = None,
 ) -> None:
     o = Order(
         user_id=user_id,
@@ -25,9 +22,6 @@ async def create_order(
         status=status,
         category_key=category_key,
         option_title=option_title,
-        phone_number=phone_number,
-        full_name=full_name,
-        username=username,
     )
     session.add(o)
     await session.commit()
@@ -61,3 +55,47 @@ async def get_category_by_id(session: AsyncSession, category_id: int) -> Optiona
     stmt = select(Category).where(Category.id == category_id)
     res = await session.execute(stmt)
     return res.scalars().first()
+
+
+async def get_or_create_user_by_telegram(
+    session: AsyncSession,
+    telegram_id: int,
+    username: Optional[str] = None,
+    full_name: Optional[str] = None,
+    phone_number: Optional[str] = None,
+    default_role_id: int = 2,
+) -> User:
+    stmt = select(User).where(User.telegram_id == telegram_id)
+    res = await session.execute(stmt)
+    user = res.scalars().first()
+    if user:
+        # Update basic fields if changed
+        changed = False
+        if username is not None and user.username != username:
+            user.username = username
+            changed = True
+        if full_name is not None and user.full_name != full_name:
+            user.full_name = full_name
+            changed = True
+        if phone_number is not None and user.phone_number != phone_number:
+            user.phone_number = phone_number
+            changed = True
+        if changed:
+            await session.commit()
+        return user
+    user = User(
+        telegram_id=telegram_id,
+        username=username,
+        full_name=full_name,
+        phone_number=phone_number,
+        role_id=default_role_id,
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def update_user_phone(session: AsyncSession, user: User, phone_number: str) -> None:
+    user.phone_number = phone_number
+    await session.commit()

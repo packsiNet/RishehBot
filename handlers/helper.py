@@ -15,7 +15,7 @@ from db.database import get_session
 from db.crud import create_order
 from keyboards import helper_menu_kb, helper_options_kb, helper_confirm_kb, after_confirm_kb
 from db.database import get_session
-from db.crud import get_categories, get_items_by_category, get_category_by_id
+from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone
 
 
 # Category descriptions and numeric options
@@ -132,7 +132,7 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return 1
     phone = update.message.contact.phone_number
     user = update.effective_user
-    user_id = user.id if user else None
+    telegram_id = user.id if user else None
     username = user.username if user else None
     full_name = user.full_name if user and hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
 
@@ -142,20 +142,21 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     tracking_code = _generate_tracking_code()
     async with get_session() as session:
+        # Upsert user and update phone
+        user_row = await get_or_create_user_by_telegram(session, int(telegram_id), username=username, full_name=full_name)
+        if phone:
+            await update_user_phone(session, user_row, phone)
         items = await get_items_by_category(session, int(category_id)) if category_id else []
         chosen = items[idx - 1].title if isinstance(idx, int) and 0 < idx <= len(items) else None
         cat = await get_category_by_id(session, int(category_id)) if category_id else None
         cat_title = cat.title if cat else None
         await create_order(
             session,
-            int(user_id),
+            int(user_row.id),
             tracking_code,
             "درحال انجام",
             category_key=cat_title,
             option_title=chosen,
-            phone_number=phone,
-            full_name=full_name,
-            username=username,
         )
 
     text = (
