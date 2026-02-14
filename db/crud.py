@@ -80,6 +80,10 @@ async def get_or_create_user_by_telegram(
         if phone_number is not None and user.phone_number != phone_number:
             user.phone_number = phone_number
             changed = True
+        # Sync role with provided default when explicit admin list is configured
+        if default_role_id in (1, 2) and user.role_id != default_role_id:
+            user.role_id = default_role_id
+            changed = True
         if changed:
             await session.commit()
         return user
