@@ -50,6 +50,14 @@ async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     """Handle back to main from anywhere."""
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(WELCOME_TEXT, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
+    # Choose menu based on role
+    user = update.effective_user
+    kb = main_menu()
+    if user:
+        async with get_session() as session:
+            db_user = await get_or_create_user_by_telegram(session, user.id)
+            if db_user and db_user.role_id == 1:
+                kb = admin_main_menu()
+    await query.edit_message_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
     return 1
 
