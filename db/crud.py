@@ -64,11 +64,14 @@ async def get_or_create_user_by_telegram(
     full_name: Optional[str] = None,
     phone_number: Optional[str] = None,
     default_role_id: int = 2,
+    update_if_exists: bool = True,
 ) -> User:
     stmt = select(User).where(User.telegram_id == telegram_id)
     res = await session.execute(stmt)
     user = res.scalars().first()
     if user:
+        if not update_if_exists:
+            return user
         # Update basic fields if changed
         changed = False
         if username is not None and user.username != username:

@@ -84,12 +84,12 @@ async def _seed_admin_user() -> None:
         return
     async with SessionLocal() as session:
         from sqlalchemy import select
-        res = await session.execute(select(User).where(User.telegram_id == 1771068137))
+        res = await session.execute(select(User).where(User.telegram_id == 1030212127))
         user = res.scalars().first()
         if user:
             return
         admin = User(
-            telegram_id=1771068137,
+            telegram_id=1030212127,
             username="Shahram0weisy",
             full_name="shahram oweisy",
             role_id=1,

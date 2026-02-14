@@ -46,7 +46,7 @@ async def orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_T
     telegram_id = query.from_user.id
     fa_status = STATUS_MAP.get(filt, "")
     async with get_session() as session:
-        user_row = await get_or_create_user_by_telegram(session, telegram_id)
+        user_row = await get_or_create_user_by_telegram(session, telegram_id, update_if_exists=False)
         orders = await db_get_orders_by_status(session, user_row.id, fa_status)
     if not orders:
         await query.edit_message_text(
@@ -73,7 +73,7 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     _, _, code = query.data.split(":", 2)
     telegram_id = query.from_user.id
     async with get_session() as session:
-        user_row = await get_or_create_user_by_telegram(session, telegram_id)
+        user_row = await get_or_create_user_by_telegram(session, telegram_id, update_if_exists=False)
         order = await db_find_order(session, user_row.id, code)
     if not order:
         await query.edit_message_text(

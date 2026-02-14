@@ -142,8 +142,14 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     tracking_code = _generate_tracking_code()
     async with get_session() as session:
-        # Upsert user and update phone
-        user_row = await get_or_create_user_by_telegram(session, int(telegram_id), username=username, full_name=full_name)
+        # Ensure user exists; do not update existing except phone explicitly
+        user_row = await get_or_create_user_by_telegram(
+            session,
+            int(telegram_id),
+            username=username,
+            full_name=full_name,
+            update_if_exists=False,
+        )
         if phone:
             await update_user_phone(session, user_row, phone)
         items = await get_items_by_category(session, int(category_id)) if category_id else []

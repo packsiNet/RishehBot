@@ -29,12 +29,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         admins = {int(x) for x in os.getenv("ADMIN_TELEGRAM_IDS", "").split(",") if x.strip().isdigit()}
         default_role = 1 if user.id in admins else 2
         async with get_session() as session:
-            await get_or_create_user_by_telegram(session, user.id, username=user.username, full_name=full_name, default_role_id=default_role)
+            await get_or_create_user_by_telegram(
+                session,
+                user.id,
+                username=user.username,
+                full_name=full_name,
+                default_role_id=default_role,
+                update_if_exists=False,
+            )
     # Choose menu based on role
     kb = main_menu()
     if user:
         async with get_session() as session:
-            db_user = await get_or_create_user_by_telegram(session, user.id)
+            db_user = await get_or_create_user_by_telegram(session, user.id, update_if_exists=False)
             if db_user and db_user.role_id == 1:
                 kb = admin_main_menu()
     if update.message:
@@ -55,7 +62,7 @@ async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     kb = main_menu()
     if user:
         async with get_session() as session:
-            db_user = await get_or_create_user_by_telegram(session, user.id)
+            db_user = await get_or_create_user_by_telegram(session, user.id, update_if_exists=False)
             if db_user and db_user.role_id == 1:
                 kb = admin_main_menu()
     await query.edit_message_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
