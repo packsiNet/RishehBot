@@ -84,8 +84,8 @@ jobs:
           sudo mkdir -p /opt/rishehbot
           sudo tar -xzf /tmp/rishehbot.tar.gz -C /opt/rishehbot --strip-components=1
           sudo bash /opt/rishehbot/deploy/install_server.sh
-          # Resolve BOT_TOKEN from workflow input or secret (expanded on runner before SSH)
-          export BOT_TOKEN="${{ github.event.inputs.bot_token || secrets.BOT_TOKEN }}"
+          # Use the previously resolved value from runner env
+          export BOT_TOKEN="${RESOLVED_BOT_TOKEN}"
           # If this is the first deploy, require a BOT_TOKEN (via input or secret).
           if [ -z "$BOT_TOKEN" ]; then
             if [ -f /opt/rishehbot/.env ] && grep -q '^BOT_TOKEN=' /opt/rishehbot/.env; then
