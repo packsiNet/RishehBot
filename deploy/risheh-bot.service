@@ -1,0 +1,18 @@
+[Unit]
+Description=Risheh Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{USER}}
+WorkingDirectory=/opt/risheh-bot
+EnvironmentFile=/opt/risheh-bot/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/risheh-bot/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

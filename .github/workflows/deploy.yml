@@ -1,0 +1,56 @@
+# CI/CD pipeline for building and deploying the Telegram bot to a Linux server via SSH.
+
+name: Deploy Bot
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SERVER_HOST: ${{ vars.SERVER_HOST }}
+      SERVER_PORT: ${{ vars.SERVER_PORT }}
+      SERVER_USER: ${{ vars.SERVER_USER }}
+      APP_URL: ${{ vars.APP_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Python syntax
+        run: |
+          python -m compileall -q .
+
+      - name: Create artifact
+        run: |
+          tar -czf risheh-bot.tar.gz .
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Upload artifact to server
+        run: |
+          scp -o StrictHostKeyChecking=no -P "$SERVER_PORT" risheh-bot.tar.gz "$SERVER_USER@$SERVER_HOST:/tmp/risheh-bot.tar.gz"
+
+      - name: Deploy on server
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" << 'EOF'
+          set -e
+          sudo mkdir -p /opt/risheh-bot
+          sudo tar -xzf /tmp/risheh-bot.tar.gz -C /opt/risheh-bot --strip-components=1
+          sudo bash /opt/risheh-bot/deploy/install_server.sh
+          sudo bash /opt/risheh-bot/deploy/deploy_bot.sh "$BOT_TOKEN" "$SERVER_USER"
+          sudo systemctl is-active --quiet risheh-bot && echo "Service active" || (sudo journalctl -u risheh-bot -n 50 --no-pager; exit 1)
+          EOF
+
