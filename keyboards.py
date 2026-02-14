@@ -210,10 +210,10 @@ def admin_users_list_kb(user_buttons: List[tuple[int, str]], page: int, has_prev
 
 def admin_user_actions_kb(user_id: int, return_page: int, current_role: int) -> InlineKeyboardMarkup:
     if current_role == 1:
-        label = "تغییر به کاربر عادی roleid = 2"
+        label = "تغییر به کاربر عادی"
         cb = f"ADMIN_USERS:SET_ROLE:{user_id}:2:{return_page}"
     else:
-        label = "تغییر به ادمین roleid = 1"
+        label = "تغییر به ادمین"
         cb = f"ADMIN_USERS:SET_ROLE:{user_id}:1:{return_page}"
     buttons = [
         [InlineKeyboardButton(label, callback_data=cb)],
