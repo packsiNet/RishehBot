@@ -11,7 +11,7 @@ if [ -z "$BOT_TOKEN" ]; then
   exit 1
 fi
 
-APP_DIR=/opt/risheh-bot
+APP_DIR=/opt/rishehbot
 PY_BIN=$(cat "$APP_DIR/.python_bin" 2>/dev/null || echo python3)
 
 sudo mkdir -p "$APP_DIR"
@@ -34,14 +34,13 @@ if [ -z "$DEPLOY_USER" ]; then
   DEPLOY_USER=$(whoami)
 fi
 
-if [ -f "$APP_DIR/deploy/risheh-bot.service" ]; then
-  sudo cp "$APP_DIR/deploy/risheh-bot.service" /etc/systemd/system/risheh-bot.service
-  sudo sed -i "s#{{USER}}#$DEPLOY_USER#g" /etc/systemd/system/risheh-bot.service
+if [ -f "$APP_DIR/deploy/rishehbot.service" ]; then
+  sudo cp "$APP_DIR/deploy/rishehbot.service" /etc/systemd/system/rishehbot.service
+  sudo sed -i "s#{{USER}}#$DEPLOY_USER#g" /etc/systemd/system/rishehbot.service
 fi
 
 sudo systemctl daemon-reload
-sudo systemctl enable risheh-bot.service || true
-sudo systemctl restart risheh-bot.service
+sudo systemctl enable rishehbot.service || true
+sudo systemctl restart rishehbot.service
 
 exit 0
-

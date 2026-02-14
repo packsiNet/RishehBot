@@ -30,7 +30,7 @@ jobs:
 
       - name: Create artifact
         run: |
-          tar -czf risheh-bot.tar.gz .
+          git archive --format=tar --prefix=rishehbot/ HEAD | gzip > rishehbot.tar.gz
 
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
@@ -39,18 +39,17 @@ jobs:
 
       - name: Upload artifact to server
         run: |
-          scp -o StrictHostKeyChecking=no -P "$SERVER_PORT" risheh-bot.tar.gz "$SERVER_USER@$SERVER_HOST:/tmp/risheh-bot.tar.gz"
+          scp -o StrictHostKeyChecking=no -P "$SERVER_PORT" rishehbot.tar.gz "$SERVER_USER@$SERVER_HOST:/tmp/rishehbot.tar.gz"
 
       - name: Deploy on server
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          ssh -o StrictHostKeyChecking=no -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" << 'EOF'
+          ssh -o StrictHostKeyChecking=no -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" << EOF
           set -e
-          sudo mkdir -p /opt/risheh-bot
-          sudo tar -xzf /tmp/risheh-bot.tar.gz -C /opt/risheh-bot --strip-components=1
-          sudo bash /opt/risheh-bot/deploy/install_server.sh
-          sudo bash /opt/risheh-bot/deploy/deploy_bot.sh "$BOT_TOKEN" "$SERVER_USER"
-          sudo systemctl is-active --quiet risheh-bot && echo "Service active" || (sudo journalctl -u risheh-bot -n 50 --no-pager; exit 1)
+          sudo mkdir -p /opt/rishehbot
+          sudo tar -xzf /tmp/rishehbot.tar.gz -C /opt/rishehbot --strip-components=1
+          sudo bash /opt/rishehbot/deploy/install_server.sh
+          export BOT_TOKEN="${{ secrets.BOT_TOKEN }}"
+          export SERVER_USER_VAR="${{ vars.SERVER_USER }}"
+          sudo bash /opt/rishehbot/deploy/deploy_bot.sh "${BOT_TOKEN}" "${SERVER_USER_VAR}"
+          sudo systemctl is-active --quiet rishehbot && echo "Service active" || (sudo journalctl -u rishehbot -n 50 --no-pager; exit 1)
           EOF
-

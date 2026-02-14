@@ -8,7 +8,7 @@ if ! command -v sudo >/dev/null 2>&1; then
   exit 1
 fi
 
-sudo mkdir -p /opt/risheh-bot /var/log/risheh-bot
+sudo mkdir -p /opt/rishehbot /var/log/rishehbot
 
 if [ -f /etc/os-release ]; then
   . /etc/os-release
@@ -43,7 +43,6 @@ case "$ID" in
     ;;
 esac
 
-sudo bash -c "echo $PY_BIN > /opt/risheh-bot/.python_bin"
+sudo bash -c "echo $PY_BIN > /opt/rishehbot/.python_bin"
 
 exit 0
-
