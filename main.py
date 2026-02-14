@@ -30,7 +30,7 @@ from handlers.helper import (
     handle_contact,
 )
 from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected
-from handlers.admin import open_admin_orders_menu, admin_orders_filter_selected, admin_order_code_selected
+from handlers.admin import open_admin_orders_menu, admin_orders_filter_selected, admin_order_code_selected, open_status_menu, set_status
 
 
 import asyncio
@@ -93,6 +93,8 @@ def build_app(token: str) -> Application:
                 CallbackQueryHandler(open_admin_orders_menu, pattern=r"^NAV:ADMIN_ORDERS$"),
                 CallbackQueryHandler(admin_orders_filter_selected, pattern=r"^ORDERS_ADMIN:FILTER:.*"),
                 CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\\d{6}$"),
+                CallbackQueryHandler(open_status_menu, pattern=r"^ORDERS_ADMIN:STATUSMENU:\\d{6}$"),
+                CallbackQueryHandler(set_status, pattern=r"^ORDERS_ADMIN:SETSTATUS:\\d{6}:[A-Z_]+$"),
                 # Fallback last
                 CallbackQueryHandler(invalid_callback),
             ]

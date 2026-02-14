@@ -132,3 +132,30 @@ def admin_orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
     return InlineKeyboardMarkup(buttons)
 
+
+def admin_order_actions_kb(username: str | None, code: str) -> InlineKeyboardMarkup:
+    buttons: List[List[InlineKeyboardButton]] = []
+    buttons.append([InlineKeyboardButton("تغییر وضعیت", callback_data=f"ORDERS_ADMIN:STATUSMENU:{code}")])
+    if username:
+        buttons.append([InlineKeyboardButton("ارتباط با کاربر", url=f"https://t.me/{username}")])
+    else:
+        # اگر نام‌کاربری موجود نباشد، فقط دکمه تغییر وضعیت را نشان بده
+        pass
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def admin_status_menu_kb(code: str) -> InlineKeyboardMarkup:
+    # Use compact status codes for callback data; labels are Persian
+    items = [
+        ("REVIEWED", "بررسی شده"),
+        ("REJECTED", "رد شده"),
+        ("IN_PROGRESS", "در دست اقدام"),
+        ("DONE", "انجام شده"),
+    ]
+    buttons: List[List[InlineKeyboardButton]] = []
+    for key, label in items:
+        buttons.append([InlineKeyboardButton(label, callback_data=f"ORDERS_ADMIN:SETSTATUS:{code}:{key}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ORDERS_ADMIN:CODE:{code}")])
+    return InlineKeyboardMarkup(buttons)
+

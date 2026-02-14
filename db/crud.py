@@ -118,3 +118,12 @@ async def find_order_by_code(session: AsyncSession, tracking_code: str) -> Optio
     stmt = select(Order).where(Order.tracking_code == tracking_code)
     res = await session.execute(stmt)
     return res.scalars().first()
+
+
+async def update_order_status_by_code(session: AsyncSession, tracking_code: str, new_status: str) -> bool:
+    order = await find_order_by_code(session, tracking_code)
+    if not order:
+        return False
+    order.status = new_status
+    await session.commit()
+    return True
