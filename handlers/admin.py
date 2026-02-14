@@ -13,6 +13,7 @@ from telegram.ext import ContextTypes
 from db.database import get_session
 from db.crud import get_all_orders_by_status, find_order_by_code, update_order_status_by_code
 from keyboards import admin_orders_menu_kb, admin_orders_list_kb, admin_order_actions_kb, admin_status_menu_kb
+from db.models import User
 
 
 STATUS_MAP = {
@@ -63,11 +64,10 @@ async def admin_order_code_selected(update: Update, context: ContextTypes.DEFAUL
         order = await find_order_by_code(session, code)
         user = None
         if order:
-            # fetch user info explicitly to avoid lazy load after session
             from sqlalchemy import select
-            res = await session.execute(select(type(order).user).where(type(order).id == order.id))
-            # fallback if the above isn't reliable; get by FK
-            user = order.user if hasattr(order, "user") else None
+            if getattr(order, "user_id", None) is not None:
+                user_res = await session.execute(select(User).where(User.id == order.user_id))
+                user = user_res.scalars().first()
     if not order:
         await query.edit_message_text(
             "سفارش موردنظر پیدا نشد.", reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML

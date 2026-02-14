@@ -88,13 +88,13 @@ def build_app(token: str) -> Application:
                 # Orders section
                 CallbackQueryHandler(open_orders_menu, pattern=r"^NAV:ORDERS$"),
                 CallbackQueryHandler(orders_filter_selected, pattern=r"^ORDERS:FILTER:.*"),
-                CallbackQueryHandler(order_code_selected, pattern=r"^ORDERS:CODE:\\d{6}$"),
+                CallbackQueryHandler(order_code_selected, pattern=r"^ORDERS:CODE:\d{6}$"),
                 # Admin orders section
                 CallbackQueryHandler(open_admin_orders_menu, pattern=r"^NAV:ADMIN_ORDERS$"),
                 CallbackQueryHandler(admin_orders_filter_selected, pattern=r"^ORDERS_ADMIN:FILTER:.*"),
-                CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\\d{6}$"),
-                CallbackQueryHandler(open_status_menu, pattern=r"^ORDERS_ADMIN:STATUSMENU:\\d{6}$"),
-                CallbackQueryHandler(set_status, pattern=r"^ORDERS_ADMIN:SETSTATUS:\\d{6}:[A-Z_]+$"),
+                CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\d{6}$"),
+                CallbackQueryHandler(open_status_menu, pattern=r"^ORDERS_ADMIN:STATUSMENU:\d{6}$"),
+                CallbackQueryHandler(set_status, pattern=r"^ORDERS_ADMIN:SETSTATUS:\d{6}:[A-Z_]+$"),
                 # Fallback last
                 CallbackQueryHandler(invalid_callback),
             ]
