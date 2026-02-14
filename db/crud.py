@@ -99,3 +99,15 @@ async def get_or_create_user_by_telegram(
 async def update_user_phone(session: AsyncSession, user: User, phone_number: str) -> None:
     user.phone_number = phone_number
     await session.commit()
+
+
+async def get_all_orders_by_status(session: AsyncSession, status: str) -> List[Order]:
+    stmt = select(Order).where(Order.status == status).order_by(Order.id.desc())
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
+async def find_order_by_code(session: AsyncSession, tracking_code: str) -> Optional[Order]:
+    stmt = select(Order).where(Order.tracking_code == tracking_code)
+    res = await session.execute(stmt)
+    return res.scalars().first()

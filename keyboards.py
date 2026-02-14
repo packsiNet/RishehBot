@@ -21,6 +21,15 @@ def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+def admin_main_menu() -> InlineKeyboardMarkup:
+    """Admin main menu with access to global orders list."""
+    buttons = [
+        [InlineKeyboardButton("لیست سفارشات ثبت شده", callback_data="NAV:ADMIN_ORDERS")],
+        [InlineKeyboardButton("درباره ریشه", callback_data="NAV:ABOUT")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
 def back_to_main_button() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")]])
 
@@ -103,5 +112,23 @@ def orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
     for code in tracking_codes:
         buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS:CODE:{code}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def admin_orders_menu_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("همه سفارشات درحال انجام", callback_data="ORDERS_ADMIN:FILTER:ACTIVE")],
+        [InlineKeyboardButton("همه سفارشات انجام شده", callback_data="ORDERS_ADMIN:FILTER:DONE")],
+        [InlineKeyboardButton("همه سفارشات کنسل شده", callback_data="ORDERS_ADMIN:FILTER:CANCEL")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def admin_orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
+    buttons: List[List[InlineKeyboardButton]] = []
+    for code in tracking_codes:
+        buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS_ADMIN:CODE:{code}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
     return InlineKeyboardMarkup(buttons)
 

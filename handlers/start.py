@@ -11,7 +11,7 @@ import os
 from db.database import get_session
 from db.crud import get_or_create_user_by_telegram
 
-from keyboards import main_menu
+from keyboards import main_menu, admin_main_menu
 
 
 WELCOME_TEXT = (
@@ -30,12 +30,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         default_role = 1 if user.id in admins else 2
         async with get_session() as session:
             await get_or_create_user_by_telegram(session, user.id, username=user.username, full_name=full_name, default_role_id=default_role)
+    # Choose menu based on role
+    kb = main_menu()
+    if user:
+        async with get_session() as session:
+            db_user = await get_or_create_user_by_telegram(session, user.id)
+            if db_user and db_user.role_id == 1:
+                kb = admin_main_menu()
     if update.message:
-        await update.message.reply_text(WELCOME_TEXT, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
+        await update.message.reply_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
     elif update.callback_query:
         query = update.callback_query
         await query.answer()
-        await query.edit_message_text(WELCOME_TEXT, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
+        await query.edit_message_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
     return 1
 
 
