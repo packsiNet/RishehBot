@@ -208,9 +208,15 @@ def admin_users_list_kb(user_buttons: List[tuple[int, str]], page: int, has_prev
     return InlineKeyboardMarkup(rows)
 
 
-def admin_user_actions_kb(user_id: int, return_page: int) -> InlineKeyboardMarkup:
+def admin_user_actions_kb(user_id: int, return_page: int, current_role: int) -> InlineKeyboardMarkup:
+    if current_role == 1:
+        label = "تغییر به کاربر عادی roleid = 2"
+        cb = f"ADMIN_USERS:SET_ROLE:{user_id}:2:{return_page}"
+    else:
+        label = "تغییر به ادمین roleid = 1"
+        cb = f"ADMIN_USERS:SET_ROLE:{user_id}:1:{return_page}"
     buttons = [
-        [InlineKeyboardButton("این کاربر ادمین است", callback_data=f"ADMIN_USERS:MAKE_ADMIN:{user_id}:{return_page}")],
+        [InlineKeyboardButton(label, callback_data=cb)],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ADMIN_USERS:PAGE:{return_page}")],
     ]
     return InlineKeyboardMarkup(buttons)

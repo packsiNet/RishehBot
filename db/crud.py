@@ -175,3 +175,15 @@ async def set_user_admin(session: AsyncSession, user_id: int) -> bool:
         user.role_id = 1
         await session.commit()
     return True
+
+
+async def set_user_role(session: AsyncSession, user_id: int, role_id: int) -> bool:
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        return False
+    if role_id not in (1, 2):
+        return False
+    if user.role_id != role_id:
+        user.role_id = role_id
+        await session.commit()
+    return True

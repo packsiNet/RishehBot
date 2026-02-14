@@ -41,7 +41,7 @@ from handlers.admin import (
     admin_users_open,
     admin_users_change_page,
     admin_user_selected,
-    admin_make_user_admin,
+    admin_set_user_role,
 )
 
 
@@ -114,7 +114,7 @@ def build_app(token: str) -> Application:
                 CallbackQueryHandler(admin_users_open, pattern=r"^ADMIN_USERS:OPEN$"),
                 CallbackQueryHandler(admin_users_change_page, pattern=r"^ADMIN_USERS:PAGE:\d+$"),
                 CallbackQueryHandler(admin_user_selected, pattern=r"^ADMIN_USERS:USER:\d+:\d+$"),
-                CallbackQueryHandler(admin_make_user_admin, pattern=r"^ADMIN_USERS:MAKE_ADMIN:\d+:\d+$"),
+                CallbackQueryHandler(admin_set_user_role, pattern=r"^ADMIN_USERS:SET_ROLE:\d+:(1|2):\d+$"),
                 # Fallback last
                 CallbackQueryHandler(invalid_callback),
             ]

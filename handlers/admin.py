@@ -28,7 +28,7 @@ from keyboards import (
     admin_user_actions_kb,
 )
 from db.models import User
-from db.crud import count_users, get_users_paged, get_user_by_id, set_user_admin
+from db.crud import count_users, get_users_paged, get_user_by_id, set_user_admin, set_user_role
 
 
 STATUS_MAP = {
@@ -68,7 +68,12 @@ async def open_users_list(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
         users = await get_users_paged(session, offset, PAGE_SIZE)
     btns: List[tuple[int, str]] = []
     for u in users:
-        label = f"{u.full_name or '—'} | @{u.username}" if u.username else f"{u.full_name or '—'}"
+        if u.full_name and u.full_name.strip():
+            label = u.full_name.strip()
+        elif u.username and str(u.username).strip():
+            label = f"@{u.username.strip()}"
+        else:
+            label = "کاربر ناشناس"
         btns.append((u.id, label))
     has_prev = page > 0
     has_next = (offset + PAGE_SIZE) < total
@@ -99,33 +104,35 @@ async def admin_user_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     if not user:
         await query.edit_message_text("کاربر یافت نشد.", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
         return 1
+    display_name = user.full_name.strip() if user.full_name and user.full_name.strip() else (f"@{user.username.strip()}" if user.username and str(user.username).strip() else "کاربر ناشناس")
     text = (
         f"مشخصات کاربر:\n"
-        f"نام کامل: {user.full_name or '—'}\n"
-        f"نام‌کاربری: @{user.username}" if user.username else "نام‌کاربری: —"
+        f"نام نمایشی: {display_name}"
     )
-    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page, user.role_id), parse_mode=ParseMode.HTML)
     return 1
 
 
-async def admin_make_user_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def admin_set_user_role(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    _, _, user_id_str, page_str = query.data.split(":", 3)
+    _, _, user_id_str, role_id_str, page_str = query.data.split(":", 4)
     user_id = int(user_id_str)
+    role_id = int(role_id_str)
     page = int(page_str)
     async with get_session() as session:
-        ok = await set_user_admin(session, user_id)
+        ok = await set_user_role(session, user_id, role_id)
         user = await get_user_by_id(session, user_id)
     if not ok or not user:
         await query.edit_message_text("تغییر نقش ناموفق بود.", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
         return 1
+    verb = "ادمین" if role_id == 1 else "کاربر عادی"
+    display_name = user.full_name.strip() if user.full_name and user.full_name.strip() else (f"@{user.username.strip()}" if user.username and str(user.username).strip() else "کاربر ناشناس")
     text = (
-        f"نقش کاربر به ادمین تغییر کرد.\n\n"
-        f"نام کامل: {user.full_name or '—'}\n"
-        f"نام‌کاربری: @{user.username}" if user.username else "نام‌کاربری: —"
+        f"نقش کاربر به {verb} تغییر کرد.\n\n"
+        f"نام نمایشی: {display_name}"
     )
-    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page, user.role_id), parse_mode=ParseMode.HTML)
     return 1
 
 
