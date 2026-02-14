@@ -19,7 +19,7 @@ fi
 case "$ID" in
   ubuntu|debian)
     sudo apt-get update -y
-    sudo apt-get install -y ca-certificates curl gnupg lsb-release rsync git
+    sudo apt-get install -y ca-certificates curl gnupg lsb-release rsync git sqlite3
     if apt-cache policy python3.11 >/dev/null 2>&1; then
       sudo apt-get install -y python3.11 python3.11-venv python3-pip
       PY_BIN=python3.11

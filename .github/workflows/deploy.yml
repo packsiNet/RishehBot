@@ -21,6 +21,10 @@ on:
         description: "Optional BOT_TOKEN for first-time deploy"
         required: false
         type: string
+      db_url:
+        description: "Optional DB_URL for database connection"
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -68,6 +72,16 @@ jobs:
             echo "RESOLVED_BOT_TOKEN=" >> $GITHUB_ENV
           fi
 
+      - name: Resolve DB_URL (input or vars)
+        run: |
+          if [ -n "${{ github.event.inputs.db_url }}" ]; then
+            echo "RESOLVED_DB_URL=${{ github.event.inputs.db_url }}" >> $GITHUB_ENV
+          elif [ -n "${{ vars.DB_URL }}" ]; then
+            echo "RESOLVED_DB_URL=${{ vars.DB_URL }}" >> $GITHUB_ENV
+          else
+            echo "RESOLVED_DB_URL=" >> $GITHUB_ENV
+          fi
+
       - name: Create artifact
         run: |
           git archive --format=tar --prefix=rishehbot/ HEAD | gzip > rishehbot.tar.gz
@@ -95,6 +109,7 @@ jobs:
           sudo bash /opt/rishehbot/deploy/install_server.sh
 
           BOT_TOKEN="${RESOLVED_BOT_TOKEN}"
+          DB_URL="${RESOLVED_DB_URL}"
 
           # First-time deploy check
           if [ -z "\$BOT_TOKEN" ]; then
@@ -107,7 +122,7 @@ jobs:
             fi
           fi
 
-          sudo bash /opt/rishehbot/deploy/deploy_bot.sh "\$BOT_TOKEN" "${RESOLVED_USER}"
+          sudo bash /opt/rishehbot/deploy/deploy_bot.sh "\$BOT_TOKEN" "${RESOLVED_USER}" "\$DB_URL"
 
           sudo systemctl is-active --quiet rishehbot \
             && echo "Service active" \

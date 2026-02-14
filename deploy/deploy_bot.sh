@@ -5,6 +5,7 @@ set -euo pipefail
 
 BOT_TOKEN_ARG=${1:-}
 DEPLOY_USER=${2:-}
+DB_URL_ARG=${3:-}
 
 APP_DIR=/opt/rishehbot
 PY_BIN=$(cat "$APP_DIR/.python_bin" 2>/dev/null || echo python3)
@@ -33,7 +34,31 @@ else
   exit 1
 fi
 
-printf '%s\n' "BOT_TOKEN=$BOT_TOKEN_VALUE" | sudo tee "$APP_DIR/.env" >/dev/null
+touch "$APP_DIR/.env"
+if grep -q '^BOT_TOKEN=' "$APP_DIR/.env"; then
+  sudo sed -i "s#^BOT_TOKEN=.*#BOT_TOKEN=$BOT_TOKEN_VALUE#" "$APP_DIR/.env"
+else
+  printf '%s\n' "BOT_TOKEN=$BOT_TOKEN_VALUE" | sudo tee -a "$APP_DIR/.env" >/dev/null
+fi
+
+# Resolve DB_URL
+if [ -n "$DB_URL_ARG" ]; then
+  DB_URL_VALUE="$DB_URL_ARG"
+elif [ -n "${DB_URL:-}" ]; then
+  DB_URL_VALUE="$DB_URL"
+elif grep -q '^DB_URL=' "$APP_DIR/.env"; then
+  DB_URL_VALUE=""
+else
+  DB_URL_VALUE="sqlite+aiosqlite:///./data/app.db"
+fi
+
+if [ -n "$DB_URL_VALUE" ]; then
+  if grep -q '^DB_URL=' "$APP_DIR/.env"; then
+    sudo sed -i "s#^DB_URL=.*#DB_URL=$DB_URL_VALUE#" "$APP_DIR/.env"
+  else
+    printf '%s\n' "DB_URL=$DB_URL_VALUE" | sudo tee -a "$APP_DIR/.env" >/dev/null
+  fi
+fi
 
 if [ -z "$DEPLOY_USER" ]; then
   DEPLOY_USER=$(whoami)
