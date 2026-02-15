@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import random
 from typing import Dict, List
+import os
+from datetime import datetime
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
@@ -108,6 +110,42 @@ def _generate_tracking_code() -> str:
     return f"{random.randint(100000, 999999)}"
 
 
+def _now_jalali_str() -> str:
+    try:
+        from jdatetime import datetime as jdt
+        return jdt.now().strftime("%Y/%m/%d %H:%M")
+    except Exception:
+        return datetime.now().strftime("%Y/%m/%d %H:%M")
+
+
+async def _notify_admins_new_order(context: ContextTypes.DEFAULT_TYPE, user_tel_id: int, user_display: str, tracking_code: str, category_title: str | None, item_title: str | None, username: str | None) -> None:
+    admins_env = os.getenv("ADMIN_TELEGRAM_IDS", "")
+    admin_ids = [int(x) for x in admins_env.split(",") if x.strip().isdigit()]
+    if not admin_ids:
+        return
+    when_str = _now_jalali_str()
+    item_text = item_title or "—"
+    cat_text = category_title or "—"
+    text = (
+        f"درخواست جدید ثبت شد ✅\n\n"
+        f"کاربر: {user_display}\n"
+        f"زمان: {when_str}\n"
+        f"دسته: {cat_text}\n"
+        f"آیتم: {item_text}\n"
+        f"کد پیگیری: {tracking_code}"
+    )
+    contact_url = f"https://t.me/{username}" if username else f"tg://user?id={user_tel_id}"
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("تغییر وضعیت", callback_data=f"ORDERS_ADMIN:STATUSMENU:{tracking_code}")],
+        [InlineKeyboardButton("ارتباط با کاربر", url=contact_url)],
+    ])
+    for aid in admin_ids:
+        try:
+            await context.bot.send_message(chat_id=aid, text=text, reply_markup=kb)
+        except Exception:
+            continue
+
+
 async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Finalize order if phone already on file; otherwise request contact once."""
     query = update.callback_query
@@ -148,6 +186,8 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
             )
             await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+            display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
+            await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, cat_title, chosen, user_row.username)
             return 1
 
     # Ask for contact once if no phone exists yet
@@ -209,6 +249,8 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text("می‌توانید از گزینه‌های زیر استفاده کنید.", reply_markup=after_confirm_kb())
     context.user_data.pop("pending_order", None)
+    display_name = (user.full_name if hasattr(user, "full_name") and user.full_name else (f"@{username}" if username else "کاربر ناشناس"))
+    await _notify_admins_new_order(context, int(telegram_id), display_name, tracking_code, cat_title, chosen, username)
     return 1
 
 

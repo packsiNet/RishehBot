@@ -395,4 +395,15 @@ async def set_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     kb = admin_order_actions_kb(username, code)
     await query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    # Notify requester about status change
+    try:
+        if user and getattr(user, "telegram_id", None):
+            msg = (
+                f"کاربر گرامی {user.full_name or (('@'+user.username) if user.username else '')}\n\n"
+                f"درخواست شما برای «{order.option_title or '—'}» تغییر وضعیت داده شد.\n"
+                f"آخرین وضعیت: {order.status}"
+            )
+            await context.bot.send_message(chat_id=user.telegram_id, text=msg)
+    except Exception:
+        pass
     return 1
