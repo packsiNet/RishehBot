@@ -239,3 +239,11 @@ async def set_user_role(session: AsyncSession, user_id: int, role_id: int) -> bo
         user.role_id = role_id
         await session.commit()
     return True
+
+
+async def get_admin_telegram_ids(session: AsyncSession) -> List[int]:
+    stmt = select(User.telegram_id).where(User.role_id == 1)
+    res = await session.execute(stmt)
+    ids = [row[0] for row in res.fetchall() if row[0] is not None]
+    # unique
+    return list(dict.fromkeys(ids))

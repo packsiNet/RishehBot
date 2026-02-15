@@ -17,7 +17,7 @@ from db.database import get_session
 from db.crud import create_order
 from keyboards import helper_menu_kb, helper_options_kb, helper_confirm_kb, after_confirm_kb
 from db.database import get_session
-from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone
+from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
 
 
 # Category descriptions and numeric options
@@ -119,8 +119,12 @@ def _now_jalali_str() -> str:
 
 
 async def _notify_admins_new_order(context: ContextTypes.DEFAULT_TYPE, user_tel_id: int, user_display: str, tracking_code: str, category_title: str | None, item_title: str | None, username: str | None) -> None:
-    admins_env = os.getenv("ADMIN_TELEGRAM_IDS", "")
-    admin_ids = [int(x) for x in admins_env.split(",") if x.strip().isdigit()]
+    # Fetch admins (role_id=1) from DB dynamically
+    try:
+        async with get_session() as session:
+            admin_ids = await get_admin_telegram_ids(session)
+    except Exception:
+        admin_ids = []
     if not admin_ids:
         return
     when_str = _now_jalali_str()
