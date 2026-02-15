@@ -86,7 +86,12 @@ async def admin_orders_group_selected(update: Update, context: ContextTypes.DEFA
         return 1
     async with get_session() as session:
         items = await get_all_items(session)
-    pairs = [(it.id, it.title) for it in items]
+        statuses = ADMIN_GROUPS[group_key]["statuses"]
+        pairs = []
+        for it in items:
+            cnt = await count_orders_by_statuses_and_item(session, statuses, it.title)
+            label = f"{it.title} ({cnt})"
+            pairs.append((it.id, label))
     title = ADMIN_GROUPS[group_key]["name"]
     await query.edit_message_text(f"{title}\n\nیک آیتم را انتخاب کنید:", reply_markup=admin_items_menu_kb(pairs, group_key), parse_mode=ParseMode.HTML)
     return 1
