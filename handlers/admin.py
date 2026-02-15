@@ -26,9 +26,20 @@ from keyboards import (
     admin_users_menu_kb,
     admin_users_list_kb,
     admin_user_actions_kb,
+    admin_items_menu_kb,
+    admin_named_orders_list_kb,
 )
 from db.models import User
-from db.crud import count_users, get_users_paged, get_user_by_id, set_user_admin, set_user_role
+from db.crud import (
+    count_users,
+    get_users_paged,
+    get_user_by_id,
+    set_user_admin,
+    set_user_role,
+    get_all_items,
+    count_orders_by_statuses_and_item,
+    get_orders_paged_by_statuses_and_item,
+)
 
 
 STATUS_MAP = {
@@ -46,6 +57,94 @@ async def open_admin_orders_menu(update: Update, context: ContextTypes.DEFAULT_T
         "یکی از گروه‌های زیر را انتخاب کنید تا لیست تمام سفارش‌ها نمایش داده شود."
     )
     await query.edit_message_text(text, reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
+    return 1
+
+
+# Admin group definitions
+ADMIN_GROUPS = {
+    "NEW": {
+        "name": "سفارشات جدید",
+        "statuses": ["درحال انجام"],
+    },
+    "INREVIEW": {
+        "name": "سفارشات در دست بررسی",
+        "statuses": ["بررسی شده", "در دست اقدام"],
+    },
+    "DONE": {
+        "name": "سفارشات انجام شده",
+        "statuses": ["انجام شده", "رد شده"],
+    },
+}
+
+
+async def admin_orders_group_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, group_key = query.data.split(":", 2)
+    if group_key not in ADMIN_GROUPS:
+        await query.edit_message_text("گروه نامعتبر است.", reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
+        return 1
+    async with get_session() as session:
+        items = await get_all_items(session)
+    pairs = [(it.id, it.title) for it in items]
+    title = ADMIN_GROUPS[group_key]["name"]
+    await query.edit_message_text(f"{title}\n\nیک آیتم را انتخاب کنید:", reply_markup=admin_items_menu_kb(pairs, group_key), parse_mode=ParseMode.HTML)
+    return 1
+
+
+PAGE_SIZE_GROUP_ITEM = 10
+
+
+async def admin_orders_group_item_page(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, group_key, item_id_str, page_str = query.data.split(":", 4)
+    item_id = int(item_id_str)
+    page = int(page_str)
+    group = ADMIN_GROUPS.get(group_key)
+    if not group:
+        await query.edit_message_text("گروه نامعتبر است.", reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
+        return 1
+    statuses = group["statuses"]
+    # Need item title for filtering orders.option_title
+    async with get_session() as session:
+        from db.models import Item
+        from sqlalchemy import select
+        res = await session.execute(select(Item).where(Item.id == item_id))
+        item = res.scalars().first()
+        if not item:
+            await query.edit_message_text("آیتم پیدا نشد.", reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
+            return 1
+        offset = page * PAGE_SIZE_GROUP_ITEM
+        total = await count_orders_by_statuses_and_item(session, statuses, item.title)
+        orders = await get_orders_paged_by_statuses_and_item(session, statuses, item.title, offset, PAGE_SIZE_GROUP_ITEM)
+        # Fetch users for label building
+        user_ids = list({o.user_id for o in orders})
+        users = {}
+        if user_ids:
+            from sqlalchemy import select as _select
+            resu = await session.execute(_select(User).where(User.id.in_(user_ids)))
+            for u in resu.scalars().all():
+                users[u.id] = u
+    # Build labels: full name, else @username, else tracking code
+    entries: List[tuple[str, str]] = []
+    for o in orders:
+        u = users.get(o.user_id)
+        if u and u.full_name and u.full_name.strip():
+            label = u.full_name.strip()
+        elif u and u.username and str(u.username).strip():
+            label = f"@{u.username.strip()}"
+        else:
+            label = o.tracking_code
+        entries.append((label, o.tracking_code))
+    has_prev = page > 0
+    has_next = (page * PAGE_SIZE_GROUP_ITEM + len(orders)) < total
+    title = ADMIN_GROUPS[group_key]["name"]
+    await query.edit_message_text(
+        f"{title} → {item.title}\n\nسفارش را انتخاب کنید:",
+        reply_markup=admin_named_orders_list_kb(entries, group_key, item_id, page, has_prev, has_next),
+        parse_mode=ParseMode.HTML,
+    )
     return 1
 
 

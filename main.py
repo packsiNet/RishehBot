@@ -35,6 +35,8 @@ from handlers.admin import (
     admin_orders_filter_selected,
     admin_order_code_selected,
     admin_orders_change_page,
+    admin_orders_group_selected,
+    admin_orders_group_item_page,
     open_status_menu,
     set_status,
     open_admin_users_menu,
@@ -104,6 +106,10 @@ def build_app(token: str) -> Application:
                 # Admin orders section
                 CallbackQueryHandler(open_admin_orders_menu, pattern=r"^NAV:ADMIN_ORDERS$"),
                 CallbackQueryHandler(admin_orders_filter_selected, pattern=r"^ORDERS_ADMIN:FILTER:.*"),
+                # New grouped admin flows
+                CallbackQueryHandler(admin_orders_group_selected, pattern=r"^ORDERS_ADMIN:GROUP:[A-Z_]+$"),
+                CallbackQueryHandler(admin_orders_group_item_page, pattern=r"^ORDERS_ADMIN:GROUP_ITEM:[A-Z_]+:\d+:\d+$"),
+                CallbackQueryHandler(admin_orders_change_page, pattern=r"^ORDERS_ADMIN:GROUP_ITEM_PAGE:[A-Z_]+:\d+:\d+$"),
                 CallbackQueryHandler(admin_orders_change_page, pattern=r"^ORDERS_ADMIN:PAGE:[A-Z_]+:\d+$"),
                 CallbackQueryHandler(admin_order_code_selected, pattern=r"^ORDERS_ADMIN:CODE:\d{6}$"),
                 CallbackQueryHandler(open_status_menu, pattern=r"^ORDERS_ADMIN:STATUSMENU:\d{6}$"),

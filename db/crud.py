@@ -161,6 +161,45 @@ async def get_orders_paged_by_status(session: AsyncSession, status: str, offset:
     return list(res.scalars().all())
 
 
+async def count_orders_by_statuses_and_item(session: AsyncSession, statuses: List[str], item_title: str) -> int:
+    from sqlalchemy import func
+    stmt = select(func.count(Order.id)).where(Order.status.in_(statuses), Order.option_title == item_title)
+    res = await session.execute(stmt)
+    return int(res.scalar_one())
+
+
+async def get_orders_paged_by_statuses_and_item(
+    session: AsyncSession,
+    statuses: List[str],
+    item_title: str,
+    offset: int,
+    limit: int,
+) -> List[Order]:
+    stmt = (
+        select(Order)
+        .where(Order.status.in_(statuses), Order.option_title == item_title)
+        .order_by(Order.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
+async def get_all_items(session: AsyncSession) -> List[Item]:
+    stmt = select(Item).order_by(Item.id.asc())
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
+async def get_users_by_ids(session: AsyncSession, ids: List[int]) -> List[User]:
+    if not ids:
+        return []
+    stmt = select(User).where(User.id.in_(ids))
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
 async def count_users(session: AsyncSession) -> int:
     from sqlalchemy import func
     stmt = select(func.count(User.id))

@@ -139,9 +139,9 @@ def admin_orders_list_kb(tracking_codes: List[str], filt: str, page: int, has_pr
 
 def admin_orders_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("همه سفارشات درحال انجام", callback_data="ORDERS_ADMIN:FILTER:ACTIVE")],
-        [InlineKeyboardButton("همه سفارشات انجام شده", callback_data="ORDERS_ADMIN:FILTER:DONE")],
-        [InlineKeyboardButton("همه سفارشات کنسل شده", callback_data="ORDERS_ADMIN:FILTER:CANCEL")],
+        [InlineKeyboardButton("سفارشات جدید", callback_data="ORDERS_ADMIN:GROUP:NEW")],
+        [InlineKeyboardButton("سفارشات در دست بررسی", callback_data="ORDERS_ADMIN:GROUP:INREVIEW")],
+        [InlineKeyboardButton("سفارشات انجام شده", callback_data="ORDERS_ADMIN:GROUP:DONE")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -175,6 +175,42 @@ def admin_status_menu_kb(code: str) -> InlineKeyboardMarkup:
         buttons.append([InlineKeyboardButton(label, callback_data=f"ORDERS_ADMIN:SETSTATUS:{code}:{key}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ORDERS_ADMIN:CODE:{code}")])
     return InlineKeyboardMarkup(buttons)
+
+
+def admin_items_menu_kb(items: List[tuple[int, str]], group_key: str) -> InlineKeyboardMarkup:
+    rows: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
+    for iid, title in items:
+        row.append(InlineKeyboardButton(title, callback_data=f"ORDERS_ADMIN:GROUP_ITEM:{group_key}:{iid}:0"))
+        if len(row) == 2:
+            rows.append(row)
+            row = []
+    if row:
+        rows.append(row)
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
+    return InlineKeyboardMarkup(rows)
+
+
+def admin_named_orders_list_kb(entries: List[tuple[str, str]], group_key: str, item_id: int, page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
+    # entries: list of (label, tracking_code)
+    rows: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
+    for label, code in entries:
+        row.append(InlineKeyboardButton(label, callback_data=f"ORDERS_ADMIN:CODE:{code}:{page}"))
+        if len(row) == 2:
+            rows.append(row)
+            row = []
+    if row:
+        rows.append(row)
+    nav: List[InlineKeyboardButton] = []
+    if has_prev:
+        nav.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ORDERS_ADMIN:GROUP_ITEM_PAGE:{group_key}:{item_id}:{page-1}"))
+    if has_next:
+        nav.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ORDERS_ADMIN:GROUP_ITEM_PAGE:{group_key}:{item_id}:{page+1}"))
+    if nav:
+        rows.append(nav)
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ORDERS_ADMIN:GROUP:{group_key}")])
+    return InlineKeyboardMarkup(rows)
 
 
 def admin_users_menu_kb() -> InlineKeyboardMarkup:
