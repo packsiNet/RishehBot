@@ -109,12 +109,48 @@ def _generate_tracking_code() -> str:
 
 
 async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Request user's contact before finalizing order."""
+    """Finalize order if phone already on file; otherwise request contact once."""
     query = update.callback_query
     await query.answer()
     parts = query.data.split(":")
     category_id = int(parts[2]) if len(parts) > 2 else context.user_data.get("helper_category_id")
     idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
+    # Resolve chosen option and category title
+    async with get_session() as session:
+        items = await get_items_by_category(session, int(category_id)) if category_id else []
+        chosen = items[idx - 1].title if isinstance(idx, int) and 0 < idx <= len(items) else None
+        cat = await get_category_by_id(session, int(category_id)) if category_id else None
+        cat_title = cat.title if cat else None
+
+    user = update.effective_user
+    full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
+    async with get_session() as session:
+        user_row = await get_or_create_user_by_telegram(
+            session,
+            int(user.id),
+            username=user.username if user else None,
+            full_name=full_name,
+            update_if_exists=False,
+        )
+        if user_row and user_row.phone_number:
+            tracking_code = _generate_tracking_code()
+            await create_order(
+                session,
+                int(user_row.id),
+                tracking_code,
+                "درحال انجام",
+                category_key=cat_title,
+                option_title=chosen,
+            )
+            text = (
+                "سفارش شما ثبت شد ✅\n\n"
+                f"کد پیگیری: {tracking_code}\n"
+                "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
+            )
+            await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+            return 1
+
+    # Ask for contact once if no phone exists yet
     context.user_data["pending_order"] = {"category_id": category_id, "idx": idx}
     await query.edit_message_text("برای تکمیل ثبت سفارش، لطفاً شماره تماس خود را ارسال کنید.", parse_mode=ParseMode.HTML)
     contact_kb = ReplyKeyboardMarkup(
@@ -201,4 +237,3 @@ async def helper_back_to_options(update: Update, context: ContextTypes.DEFAULT_T
     text = f"{desc}\n\n{options_text}\n\nلطفاً یکی از گزینه‌های عددی را انتخاب کنید."
     await query.edit_message_text(text, reply_markup=helper_options_kb(category_id, len(opts)), parse_mode=ParseMode.HTML)
     return 1
-
