@@ -65,6 +65,6 @@ async def about_website(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         "وبسایت ریشه\n\n"
         "برای اطلاعات بیشتر و خدمات آنلاین، به وبسایت مراجعه کنید."
     )
-    await query.edit_message_text(text, reply_markup=website_kb("https://risheh.ir"), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=website_kb("https://risheh.app"), parse_mode=ParseMode.HTML)
     return 1
 
