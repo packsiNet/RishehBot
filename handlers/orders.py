@@ -17,7 +17,7 @@ from db.crud import (
     find_order as db_find_order,
     get_or_create_user_by_telegram,
 )
-from keyboards import orders_menu_kb, orders_list_kb
+from keyboards import orders_menu_kb, orders_list_kb, orders_named_list_kb
 
 
 STATUS_GROUPS = {
@@ -62,11 +62,12 @@ async def orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_T
             parse_mode=ParseMode.HTML,
         )
         return 1
-    codes: List[str] = [o.tracking_code for o in orders]
+    entries: List[tuple[str, str]] = [
+        ((o.option_title if (o.option_title and o.option_title.strip()) else o.tracking_code), o.tracking_code)
+        for o in orders
+    ]
     await query.edit_message_text(
-        "سفارش خود را انتخاب کنید:",
-        reply_markup=orders_list_kb(codes),
-        parse_mode=ParseMode.HTML,
+        "سفارش خود را انتخاب کنید:", reply_markup=orders_named_list_kb(entries), parse_mode=ParseMode.HTML
     )
     # Store current list for back navigation if needed
     context.user_data["orders_list_status"] = filt
@@ -94,11 +95,12 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     group = STATUS_GROUPS.get(filt)
     if group:
         async with get_session() as session:
-            codes = [
-                o.tracking_code
-                for o in await db_get_orders_by_statuses(session, user_row.id, group["statuses"])
+            ords = await db_get_orders_by_statuses(session, user_row.id, group["statuses"])
+            entries = [
+                ((o.option_title if (o.option_title and o.option_title.strip()) else o.tracking_code), o.tracking_code)
+                for o in ords
             ]
-        kb = orders_list_kb(codes)
+        kb = orders_named_list_kb(entries)
     else:
         kb = orders_menu_kb()
     await query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)

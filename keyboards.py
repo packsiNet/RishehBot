@@ -14,9 +14,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 def main_menu() -> InlineKeyboardMarkup:
     """Main menu with three actions."""
     buttons = [
-        [InlineKeyboardButton("پیگیری سفارش", callback_data="NAV:ORDERS")],
-        [InlineKeyboardButton("همیار ریشه", callback_data="NAV:HELPER")],
-        [InlineKeyboardButton("درباره ریشه", callback_data="NAV:ABOUT")],
+        [InlineKeyboardButton("همیــار ریـشه", callback_data="NAV:HELPER")],
+        [InlineKeyboardButton("پیگیـری سفارش", callback_data="NAV:ORDERS")],
+        [InlineKeyboardButton("دربـاره ریـشه", callback_data="NAV:ABOUT")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -111,6 +111,18 @@ def orders_list_kb(tracking_codes: List[str]) -> InlineKeyboardMarkup:
     buttons: List[List[InlineKeyboardButton]] = []
     for code in tracking_codes:
         buttons.append([InlineKeyboardButton(code, callback_data=f"ORDERS:CODE:{code}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def orders_named_list_kb(entries: List[tuple[str, str]]) -> InlineKeyboardMarkup:
+    """Build a vertical list where each button shows a label but links to a tracking code.
+
+    entries: list of (label, tracking_code)
+    """
+    buttons: List[List[InlineKeyboardButton]] = []
+    for label, code in entries:
+        buttons.append([InlineKeyboardButton(label, callback_data=f"ORDERS:CODE:{code}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
     return InlineKeyboardMarkup(buttons)
 
