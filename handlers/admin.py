@@ -243,7 +243,7 @@ async def open_status_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 STATUS_LABELS = {
-    "REVIEWED": "بررسی شده",
+    "SEEN": "دیده شده",
     "REJECTED": "رد شده",
     "IN_PROGRESS": "در دست اقدام",
     "DONE": "انجام شده",

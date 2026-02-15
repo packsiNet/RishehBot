@@ -99,9 +99,8 @@ def after_confirm_kb() -> InlineKeyboardMarkup:
 
 def orders_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("سفارشات درحال انجام", callback_data="ORDERS:FILTER:ACTIVE")],
-        [InlineKeyboardButton("سفارشات انجام شده", callback_data="ORDERS:FILTER:DONE")],
-        [InlineKeyboardButton("سفارشات کنسل شده", callback_data="ORDERS:FILTER:CANCEL")],
+        [InlineKeyboardButton("سفارشات در دست بررسی", callback_data="ORDERS:FILTER:ACTIVE")],
+        [InlineKeyboardButton("سفارشات پایان یافته", callback_data="ORDERS:FILTER:DONE")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -220,4 +219,3 @@ def admin_user_actions_kb(user_id: int, return_page: int, current_role: int) -> 
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ADMIN_USERS:PAGE:{return_page}")],
     ]
     return InlineKeyboardMarkup(buttons)
-

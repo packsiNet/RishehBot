@@ -33,6 +33,19 @@ async def get_orders_by_status(session: AsyncSession, user_id: int, status: str)
     return list(res.scalars().all())
 
 
+async def get_orders_by_statuses(session: AsyncSession, user_id: int, statuses: List[str]) -> List[Order]:
+    if not statuses:
+        return []
+    from sqlalchemy import func
+    stmt = (
+        select(Order)
+        .where(Order.user_id == user_id, Order.status.in_(statuses))
+        .order_by(Order.id.desc())
+    )
+    res = await session.execute(stmt)
+    return list(res.scalars().all())
+
+
 async def find_order(session: AsyncSession, user_id: int, tracking_code: str) -> Optional[Order]:
     stmt = select(Order).where(Order.user_id == user_id, Order.tracking_code == tracking_code)
     res = await session.execute(stmt)

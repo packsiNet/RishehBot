@@ -13,16 +13,22 @@ from telegram.ext import ContextTypes
 from db.database import get_session
 from db.crud import (
     get_orders_by_status as db_get_orders_by_status,
+    get_orders_by_statuses as db_get_orders_by_statuses,
     find_order as db_find_order,
     get_or_create_user_by_telegram,
 )
 from keyboards import orders_menu_kb, orders_list_kb
 
 
-STATUS_MAP = {
-    "ACTIVE": "درحال انجام",
-    "DONE": "انجام شده",
-    "CANCEL": "کنسل شده",
+STATUS_GROUPS = {
+    "ACTIVE": {
+        "name": "سفارشات در دست بررسی",
+        "statuses": ["بررسی شده", "در دست اقدام", "درحال انجام"],
+    },
+    "DONE": {
+        "name": "سفارشات پایان یافته",
+        "statuses": ["انجام شده", "رد شده"],
+    },
 }
 
 
@@ -44,13 +50,14 @@ async def orders_filter_selected(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     _, _, filt = query.data.split(":", 2)
     telegram_id = query.from_user.id
-    fa_status = STATUS_MAP.get(filt, "")
+    group = STATUS_GROUPS.get(filt)
+    statuses = group["statuses"] if group else []
     async with get_session() as session:
         user_row = await get_or_create_user_by_telegram(session, telegram_id, update_if_exists=False)
-        orders = await db_get_orders_by_status(session, user_row.id, fa_status)
+        orders = await db_get_orders_by_statuses(session, user_row.id, statuses)
     if not orders:
         await query.edit_message_text(
-            f"هیچ سفارشی با وضعیت «{fa_status or '—'}» یافت نشد.",
+            f"هیچ سفارشی در «{(group and group['name']) or '—'}» یافت نشد.",
             reply_markup=orders_menu_kb(),
             parse_mode=ParseMode.HTML,
         )
@@ -84,11 +91,13 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     text = f"وضعیت سفارش {order.tracking_code}: {status_text}"
     # Rebuild last list for back
     filt = context.user_data.get("orders_list_status")
-    fa_status = STATUS_MAP.get(filt, "")
-    if fa_status:
-        # Build codes again
+    group = STATUS_GROUPS.get(filt)
+    if group:
         async with get_session() as session:
-            codes = [o.tracking_code for o in await db_get_orders_by_status(session, user_row.id, fa_status)]
+            codes = [
+                o.tracking_code
+                for o in await db_get_orders_by_statuses(session, user_row.id, group["statuses"])
+            ]
         kb = orders_list_kb(codes)
     else:
         kb = orders_menu_kb()
