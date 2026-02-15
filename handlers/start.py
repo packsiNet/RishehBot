@@ -9,7 +9,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 import os
 from db.database import get_session
-from db.crud import get_or_create_user_by_telegram
+from db.crud import get_or_create_user_by_telegram, set_user_role
 
 from keyboards import main_menu, admin_main_menu
 
@@ -42,6 +42,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if user:
         async with get_session() as session:
             db_user = await get_or_create_user_by_telegram(session, user.id, update_if_exists=False)
+            try:
+                admins_env = {int(x) for x in os.getenv("ADMIN_TELEGRAM_IDS", "").split(",") if x.strip().isdigit()}
+            except Exception:
+                admins_env = set()
+            if db_user and db_user.role_id != 1 and user.id in admins_env:
+                await set_user_role(session, db_user.id, 1)
+                db_user.role_id = 1
             if db_user and db_user.role_id == 1:
                 kb = admin_main_menu()
     if update.message:
@@ -63,8 +70,14 @@ async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     if user:
         async with get_session() as session:
             db_user = await get_or_create_user_by_telegram(session, user.id, update_if_exists=False)
+            try:
+                admins_env = {int(x) for x in os.getenv("ADMIN_TELEGRAM_IDS", "").split(",") if x.strip().isdigit()}
+            except Exception:
+                admins_env = set()
+            if db_user and db_user.role_id != 1 and user.id in admins_env:
+                await set_user_role(session, db_user.id, 1)
+                db_user.role_id = 1
             if db_user and db_user.role_id == 1:
                 kb = admin_main_menu()
     await query.edit_message_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
     return 1
-
