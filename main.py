@@ -27,7 +27,7 @@ from handlers.helper import (
     helper_confirm,
     helper_back_to_menu,
     helper_back_to_options,
-    handle_contact,
+    handle_phone_text,
 )
 from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected
 from handlers.admin import (
@@ -97,8 +97,8 @@ def build_app(token: str) -> Application:
                 CallbackQueryHandler(helper_confirm, pattern=r"^HELPER:CONFIRM:.*"),
                 CallbackQueryHandler(helper_back_to_menu, pattern=r"^HELPER:BACK:MENU$"),
                 CallbackQueryHandler(helper_back_to_options, pattern=r"^HELPER:BACK:OPTIONS:.*"),
-                # Contact share for phone number
-                MessageHandler(filters.CONTACT, handle_contact),
+                # Optional phone capture by text when requested
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_text),
                 # Orders section
                 CallbackQueryHandler(open_orders_menu, pattern=r"^NAV:ORDERS$"),
                 CallbackQueryHandler(orders_filter_selected, pattern=r"^ORDERS:FILTER:.*"),

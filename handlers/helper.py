@@ -9,7 +9,7 @@ from typing import Dict, List
 import os
 from datetime import datetime
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
@@ -151,13 +151,12 @@ async def _notify_admins_new_order(context: ContextTypes.DEFAULT_TYPE, user_tel_
 
 
 async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Finalize order if phone already on file; otherwise request contact once."""
+    """Create order immediately and optionally ask for typed phone if missing."""
     query = update.callback_query
     await query.answer()
     parts = query.data.split(":")
     category_id = int(parts[2]) if len(parts) > 2 else context.user_data.get("helper_category_id")
     idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
-    # Resolve chosen option and category title
     async with get_session() as session:
         items = await get_items_by_category(session, int(category_id)) if category_id else []
         chosen = items[idx - 1].title if isinstance(idx, int) and 0 < idx <= len(items) else None
@@ -174,68 +173,7 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             full_name=full_name,
             update_if_exists=False,
         )
-        if user_row and user_row.phone_number:
-            tracking_code = _generate_tracking_code()
-            await create_order(
-                session,
-                int(user_row.id),
-                tracking_code,
-                "درحال انجام",
-                category_key=cat_title,
-                option_title=chosen,
-            )
-            text = (
-                "سفارش شما ثبت شد ✅\n\n"
-                f"کد پیگیری: {tracking_code}\n"
-                "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
-            )
-            await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
-            display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
-            await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, cat_title, chosen, user_row.username)
-            return 1
-
-    # Ask for contact once if no phone exists yet
-    context.user_data["pending_order"] = {"category_id": category_id, "idx": idx}
-    await query.edit_message_text("برای تکمیل ثبت سفارش، لطفاً شماره تماس خود را ارسال کنید.", parse_mode=ParseMode.HTML)
-    contact_kb = ReplyKeyboardMarkup(
-        [[KeyboardButton(text="اشتراک شماره تماس", request_contact=True)]],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-        input_field_placeholder="اشتراک شماره تماس",
-    )
-    await query.message.reply_text("برای ادامه، دکمه «اشتراک شماره تماس» را بزنید.", reply_markup=contact_kb)
-    return 1
-
-
-async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if not update.message or not update.message.contact:
-        return 1
-    phone = update.message.contact.phone_number
-    user = update.effective_user
-    telegram_id = user.id if user else None
-    username = user.username if user else None
-    full_name = user.full_name if user and hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
-
-    pending = context.user_data.get("pending_order") or {}
-    category_id = pending.get("category_id")
-    idx = pending.get("idx")
-
-    tracking_code = _generate_tracking_code()
-    async with get_session() as session:
-        # Ensure user exists; do not update existing except phone explicitly
-        user_row = await get_or_create_user_by_telegram(
-            session,
-            int(telegram_id),
-            username=username,
-            full_name=full_name,
-            update_if_exists=False,
-        )
-        if phone:
-            await update_user_phone(session, user_row, phone)
-        items = await get_items_by_category(session, int(category_id)) if category_id else []
-        chosen = items[idx - 1].title if isinstance(idx, int) and 0 < idx <= len(items) else None
-        cat = await get_category_by_id(session, int(category_id)) if category_id else None
-        cat_title = cat.title if cat else None
+        tracking_code = _generate_tracking_code()
         await create_order(
             session,
             int(user_row.id),
@@ -244,17 +182,58 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             category_key=cat_title,
             option_title=chosen,
         )
-
     text = (
         "سفارش شما ثبت شد ✅\n\n"
         f"کد پیگیری: {tracking_code}\n"
         "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
     )
-    await update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
+    await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+    display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
+    await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, cat_title, chosen, user_row.username)
+    if not user_row.phone_number:
+        context.user_data["await_phone"] = True
+        opt_text = (
+            "در صورت تمایل به دریافت تماس از پشتیبانی ریشه، شماره تماس خود را به‌صورت اختیاری تایپ کنید\n"
+            "مثال: 0912xxxxxxx یا +98912xxxxxxx"
+        )
+        await query.message.reply_text(opt_text)
+    return 1
+
+
+def _fa_to_en_digits(s: str) -> str:
+    fa = "۰۱۲۳۴۵۶۷۸۹"
+    ar = "٠١٢٣٤٥٦٧٨٩"
+    trans = {}
+    for i, d in enumerate(fa):
+        trans[ord(d)] = ord(str(i))
+    for i, d in enumerate(ar):
+        trans[ord(d)] = ord(str(i))
+    return s.translate(trans)
+
+
+def _is_valid_phone(text: str) -> bool:
+    import re
+    t = _fa_to_en_digits(text).strip().replace(" ", "")
+    return bool(re.fullmatch(r"\+?\d{8,15}", t))
+
+
+async def handle_phone_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if not update.message or not update.message.text:
+        return 1
+    if not context.user_data.get("await_phone"):
+        return 1
+    raw = update.message.text
+    phone = _fa_to_en_digits(raw).strip().replace(" ", "")
+    if not _is_valid_phone(phone):
+        await update.message.reply_text("شماره واردشده معتبر نیست. لطفاً با قالب 0912… یا +98912… وارد کنید.")
+        return 1
+    user = update.effective_user
+    async with get_session() as session:
+        user_row = await get_or_create_user_by_telegram(session, int(user.id), username=user.username if user else None, full_name=(user.full_name if hasattr(user, "full_name") else None), update_if_exists=False)
+        await update_user_phone(session, user_row, phone)
+    context.user_data.pop("await_phone", None)
+    await update.message.reply_text("شماره تماس شما با موفقیت ثبت شد.", reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text("می‌توانید از گزینه‌های زیر استفاده کنید.", reply_markup=after_confirm_kb())
-    context.user_data.pop("pending_order", None)
-    display_name = (user.full_name if hasattr(user, "full_name") and user.full_name else (f"@{username}" if username else "کاربر ناشناس"))
-    await _notify_admins_new_order(context, int(telegram_id), display_name, tracking_code, cat_title, chosen, username)
     return 1
 
 
