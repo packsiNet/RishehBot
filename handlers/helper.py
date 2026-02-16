@@ -193,8 +193,7 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if not user_row.phone_number:
         context.user_data["await_phone"] = True
         opt_text = (
-            "در صورت تمایل به دریافت تماس از پشتیبانی ریشه، شماره تماس خود را به‌صورت اختیاری تایپ کنید\n"
-            "مثال: 0912xxxxxxx یا +98912xxxxxxx"
+            "در صورت تمایل به دریافت تماس از پشتیبانی ریشه، شماره تماس خود را تایپ کنید\n"
         )
         await query.message.reply_text(opt_text)
     return 1
