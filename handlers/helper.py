@@ -29,6 +29,7 @@ from keyboards import (
     helper2_surprise_kb,
     helper2_gift_flowers_sweets_kb,
     helper2_home_redesign_kb,
+    helper2_special_checkups_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -181,6 +182,18 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
         )
         await query.edit_message_text(text, reply_markup=helper2_home_redesign_kb(cat_key), parse_mode=ParseMode.HTML)
+    elif cat_key == "PREVENTIVE" and item_key == "SPECIAL_CHECKUPS":
+        text = (
+            "🩺 چکاپ‌های تخصصی\n\n"
+            "آگاهی قبل از بحران. ⚠️\n"
+            "این خدمت برای انجام چکاپ‌های تخصصی دوره‌ای طراحی شده؛\n"
+            "همون بررسی‌هایی که هر فرد در طول زندگی باید انجام بده تا از وضعیت دقیق سلامت خودش باخبر باشه.\n"
+            "از چکاپ‌های مرتبط با سن سالمندی 👵👴 گرفته تا بررسی‌هایی که بهتره در سنین پایین‌تر انجام بشه تا ریسک‌ها زودتر شناسایی بشن.\n"
+            "تو درخواست رو ثبت می‌کنی ✍️، ریشه هماهنگی با مراکز معتبر رو انجام می‌ده\n"
+            "و بعد از انجام چکاپ، گزارش شفاف برای خود فرد و در صورت درخواست برای تو ارسال می‌شه 📄\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_special_checkups_kb(cat_key), parse_mode=ParseMode.HTML)
     else:
         text = (
             f"{cat_title}\n\n"
