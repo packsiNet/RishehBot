@@ -23,6 +23,7 @@ from keyboards import (
     helper2_main_kb,
     helper2_category_kb,
     helper2_item_actions_kb,
+    helper2_health_assess_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -119,12 +120,23 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
     cat_titles, item_titles = _helper2_titles()
     cat_title = cat_titles.get(cat_key, "—")
     item_title = item_titles.get(item_key, "—")
-    text = (
-        f"{cat_title}\n\n"
-        f"خدمت انتخابی: {item_title}\n\n"
-        "برای ثبت سفارش و پیگیری توسط تیم ریشه، دکمه زیر را بزن."
-    )
-    await query.edit_message_text(text, reply_markup=helper2_item_actions_kb(cat_key, item_key), parse_mode=ParseMode.HTML)
+    if cat_key == "PREVENTIVE" and item_key == "HEALTH_ASSESS":
+        text = (
+            "🩺 سنجش سلامت\n\n"
+            "یه ارزیابی جامع و پیشگیرانه برای اینکه تصویر دقیقی از وضعیت سلامت پدر یا مادرت داشته باشی — بدون مراجعه حضوری.\n"
+            "فقط با یک گفتگوی ۲۰ تا ۳۰ دقیقه‌ای با پزشک متخصص 👨🏻‍⚕️، شش حوزه کلیدی سلامت بررسی می‌شه و در پایان، "
+            "یک نقشه روشن از وضعیت سلامت در سه سطح (مطلوب، قابل اصلاح، پرریسک) دریافت می‌کنی.\n"
+            "اقدامی ساده برای آگاهی قبل از بحران ⚠️\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_health_assess_kb(cat_key), parse_mode=ParseMode.HTML)
+    else:
+        text = (
+            f"{cat_title}\n\n"
+            f"خدمت انتخابی: {item_title}\n\n"
+            "برای ثبت سفارش و پیگیری توسط تیم ریشه، دکمه زیر را بزن."
+        )
+        await query.edit_message_text(text, reply_markup=helper2_item_actions_kb(cat_key, item_key), parse_mode=ParseMode.HTML)
     return 1
 
 
