@@ -28,6 +28,7 @@ from keyboards import (
     helper2_hosting_experience_kb,
     helper2_surprise_kb,
     helper2_gift_flowers_sweets_kb,
+    helper2_home_redesign_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -170,6 +171,16 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
         )
         await query.edit_message_text(text, reply_markup=helper2_gift_flowers_sweets_kb(cat_key), parse_mode=ParseMode.HTML)
+    elif cat_key == "PREVENTIVE" and item_key == "HOME_REDESIGN":
+        text = (
+            "🏠 بازطراحی محیط زندگی سالمند\n\n"
+            "این خدمت برای کم کردن ریسک حادثه در خانه ⚠️ و راحت‌تر شدن زندگی سالمند طراحی شده.\n"
+            "ریشه ارزیابی محیط رو هماهنگ می‌کنه، نقاط پرخطر مشخص می‌شه 🔎 و پیشنهادهای اصلاحی داده می‌شه.\n"
+            "اگه تأیید کنی، اجرای اصلاحات هم هماهنگ می‌شه؛ مثل اصلاح سرویس بهداشتی 🚿، نصب تجهیزات کمکی، بهتر کردن نور 💡 یا اصلاح چیدمان.\n"
+            "در پایان هم گزارش ارزیابی و نتیجه اقدامات برای تو ارسال می‌شه 📄\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_home_redesign_kb(cat_key), parse_mode=ParseMode.HTML)
     else:
         text = (
             f"{cat_title}\n\n"
