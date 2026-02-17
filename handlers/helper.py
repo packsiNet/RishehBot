@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 
 from telegram import Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatMemberStatus
 from telegram.ext import ContextTypes
 
 from db.database import get_session
@@ -33,6 +33,7 @@ from keyboards import (
     helper2_daily_shopping_kb,
     helper2_digital_help_kb,
     helper2_want_request_kb,
+    helper2_force_join_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids, create_custom_request
@@ -331,6 +332,82 @@ async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     cat_title = cat_key
     item_title = item_titles.get(item_key, item_key)
     user = update.effective_user
+    full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
+    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+wq00h6LuLBsyOWJk")
+    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    if channel_id:
+        try:
+            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
+            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
+                text = (
+                    "📢 قبل از اینکه ادامه بدیم،\n"
+                    "لازمه عضو کانال رسمی ریشه باشی.\n"
+                    "توی کانال ریشه،\n"
+                    "اطلاعیه‌های مهم 📌، به‌روزرسانی خدمات 🔄، تغییرات فرآیندها\n"
+                    "و خبرهای مرتبط با سفارش‌هات منتشر می‌شه.\n"
+                    "عضویت توی کانال کمک می‌کنه\n"
+                    "هیچ اطلاع مهمی رو از دست ندی ❗\n"
+                    "و همیشه در جریان آخرین خدمات و شرایط باشی 🔔\n"
+                    "اول عضو کانال شو،\n"
+                    "بعد برگرد همین‌جا تا ادامه مسیر رو با هم جلو ببریم 🤍"
+                )
+                await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, join_url), parse_mode=ParseMode.HTML)
+                return 1
+        except Exception:
+            pass
+    async with get_session() as session:
+        user_row = await get_or_create_user_by_telegram(
+            session,
+            int(user.id),
+            username=user.username if user else None,
+            full_name=full_name,
+            update_if_exists=False,
+        )
+        tracking_code = _generate_tracking_code()
+        await create_order(
+            session,
+            int(user_row.id),
+            tracking_code,
+            "درحال انجام",
+            category_key=cat_title,
+            option_title=item_title,
+        )
+    text = (
+        "سفارش شما ثبت شد ✅\n\n"
+        f"کد پیگیری: {tracking_code}\n"
+        "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
+    )
+    await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+    display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
+    await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, cat_title, item_title, user_row.username)
+    return 1
+
+
+async def helper2_check_channel_and_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, cat_key, item_key = query.data.split(":", 3)
+    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+wq00h6LuLBsyOWJk")
+    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    user = update.effective_user
+    if channel_id:
+        try:
+            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
+            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
+                text = (
+                    "📢 قبل از اینکه ادامه بدیم،\n"
+                    "لازمه عضو کانال رسمی ریشه باشی.\n"
+                    "توی کانال ریشه، اطلاعیه‌ها و تغییرات مهم منتشر می‌شه.\n"
+                    "بعد از عضویت روی «بررسی عضویت» بزن."
+                )
+                await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, join_url), parse_mode=ParseMode.HTML)
+                return 1
+        except Exception:
+            pass
+    # If reached here, proceed to confirm like helper2_confirm
+    _, item_titles = _helper2_titles()
+    item_title = item_titles.get(item_key, item_key)
+    cat_title = cat_key
     full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
     async with get_session() as session:
         user_row = await get_or_create_user_by_telegram(

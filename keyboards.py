@@ -193,6 +193,15 @@ def helper2_want_request_kb(category_key: str = "WANT") -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+def helper2_force_join_kb(category_key: str, item_key: str, join_url: str) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("📢 عضویت در کانال ریشه", url=join_url)],
+        [InlineKeyboardButton("🔔 بررسی عضویت", callback_data=f"HELP2:CHECK_CHANNEL:{category_key}:{item_key}")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
 def helper_menu_kb(categories: List[tuple[int, str]]) -> InlineKeyboardMarkup:
     buttons: List[List[InlineKeyboardButton]] = []
     for cid, title in categories:
