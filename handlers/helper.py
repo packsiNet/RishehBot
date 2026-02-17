@@ -35,7 +35,7 @@ from keyboards import (
     helper2_want_request_kb,
 )
 from db.database import get_session
-from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
+from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids, create_custom_request
 
 
 # Category descriptions and numeric options
@@ -286,6 +286,15 @@ async def handle_custom_request(update: Update, context: ContextTypes.DEFAULT_TY
             category_key="WANT",
             option_title="درخواست سفارشی",
         )
+        content_text = None
+        try:
+            if update.message.text:
+                content_text = update.message.text
+            elif getattr(update.message, "caption", None):
+                content_text = update.message.caption
+        except Exception:
+            content_text = None
+        await create_custom_request(session, int(user_row.id), content_text, tracking_code)
     confirm_text = (
         "✅ درخواستت ثبت شد.\n"
         "تیم ریشه بررسیش می‌کنه 🔎 تا امکان انجامش رو بسنجه.\n"

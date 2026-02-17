@@ -55,3 +55,15 @@ class User(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     orders: Mapped[list[Order]] = relationship("Order", back_populates="user", cascade="all, delete-orphan")
+
+
+class CustomRequest(Base):
+    __tablename__ = "custom_requests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    content_text: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    tracking_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship("User")

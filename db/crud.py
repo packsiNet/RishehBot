@@ -5,7 +5,7 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import Order, Category, Item, User
+from db.models import Order, Category, Item, User, CustomRequest
 
 
 async def create_order(
@@ -247,3 +247,14 @@ async def get_admin_telegram_ids(session: AsyncSession) -> List[int]:
     ids = [row[0] for row in res.fetchall() if row[0] is not None]
     # unique
     return list(dict.fromkeys(ids))
+
+
+async def create_custom_request(
+    session: AsyncSession,
+    user_id: int,
+    content_text: Optional[str],
+    tracking_code: Optional[str] = None,
+) -> None:
+    cr = CustomRequest(user_id=user_id, content_text=content_text, tracking_code=tracking_code)
+    session.add(cr)
+    await session.commit()
