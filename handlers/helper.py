@@ -32,6 +32,7 @@ from keyboards import (
     helper2_special_checkups_kb,
     helper2_daily_shopping_kb,
     helper2_digital_help_kb,
+    helper2_want_request_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -128,6 +129,19 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
     cat_titles, item_titles = _helper2_titles()
     cat_title = cat_titles.get(cat_key, "—")
     item_title = item_titles.get(item_key, "—")
+    if cat_key == "WANT" and item_key == "WANT_NOT_FOUND":
+        text = (
+            "❓ اونی که می‌خوام اینجا نیست!\n\n"
+            "اگه چیزی که مدنظرته داخل گزینه‌ها پیدا نکردی، اینجا بهمون بگو دقیقاً چی نیاز داری ✍️\n"
+            "درخواستت ثبت می‌شه و تیم ریشه بررسیش می‌کنه 🔎 تا ببینیم امکان انجامش وجود داره یا نه.\n"
+            "اگه قابل اجرا باشه، کارشناسانمون باهات تماس می‌گیرن 📞، جزئیات رو هماهنگ می‌کنن و مسیر انجامش رو برات شفاف توضیح می‌دن.\n"
+            "هدف ما اینه که همراهی محدود به چند خدمت ثابت نباشه 🤍\n"
+            "هر جا نیاز واقعی وجود داشته باشه، بررسیش می‌کنیم.\n\n"
+            "درخواستت رو برامون بنویس 📝\n"
+            "کافیه دکمه زیر رو بزنی و بعدش متن، ویس 🎙️ یا ویدیوی مدنظرت رو برامون ارسال کنی 🎥"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_want_request_kb("WANT"), parse_mode=ParseMode.HTML)
+        return 1
     if cat_key == "PREVENTIVE" and item_key == "HEALTH_ASSESS":
         text = (
             "🩺 سنجش سلامت\n\n"
@@ -231,6 +245,70 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای ثبت سفارش و پیگیری توسط تیم ریشه، دکمه زیر را بزن."
         )
         await query.edit_message_text(text, reply_markup=helper2_item_actions_kb(cat_key, item_key), parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def helper2_request_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    context.user_data["await_custom_request"] = True
+    context.user_data.pop("await_phone", None)
+    text = (
+        "❓ اونی که می‌خوای اینجا نیست!\n\n"
+        "لطفاً درخواستت رو برامون بفرست؛ می‌تونی متن، ویس یا ویدیو ارسال کنی.\n"
+        "بعد از دریافت، تیم ریشه بررسی می‌کنه و در صورت امکان اجرا باهات تماس می‌گیره."
+    )
+    await query.edit_message_text(text, parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def handle_custom_request(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if not update.message:
+        return 1
+    if not context.user_data.get("await_custom_request"):
+        return 1
+    user = update.effective_user
+    full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
+    async with get_session() as session:
+        user_row = await get_or_create_user_by_telegram(
+            session,
+            int(user.id),
+            username=user.username if user else None,
+            full_name=full_name,
+            update_if_exists=False,
+        )
+        tracking_code = _generate_tracking_code()
+        await create_order(
+            session,
+            int(user_row.id),
+            tracking_code,
+            "درحال انجام",
+            category_key="WANT",
+            option_title="درخواست سفارشی",
+        )
+    confirm_text = (
+        "درخواست شما ثبت شد ✅\n\n"
+        f"کد پیگیری: {tracking_code}\n"
+        "تیم ریشه درخواست را بررسی می‌کند و نتیجه به شما اطلاع داده می‌شود."
+    )
+    await update.message.reply_text(confirm_text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+    display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
+    await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, "WANT", "درخواست سفارشی", user_row.username)
+    try:
+        async with get_session() as session:
+            admin_ids = await get_admin_telegram_ids(session)
+    except Exception:
+        admin_ids = []
+    for aid in admin_ids:
+        try:
+            await context.bot.copy_message(chat_id=aid, from_chat_id=update.effective_chat.id, message_id=update.message.message_id)
+        except Exception:
+            try:
+                text = update.message.text if update.message.text else "محتوای غیرمتنی دریافت شد."
+                await context.bot.send_message(chat_id=aid, text=f"جزئیات درخواست ({tracking_code}):\n{text}")
+            except Exception:
+                pass
+    context.user_data.pop("await_custom_request", None)
     return 1
 
 

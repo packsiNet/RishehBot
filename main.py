@@ -26,6 +26,8 @@ from handlers.helper import (
     helper2_item_selected,
     helper2_confirm,
     helper2_back_to_menu,
+    helper2_request_start,
+    handle_custom_request,
     helper_category_selected,
     helper_option_selected,
     helper_confirm,
@@ -98,11 +100,14 @@ def build_app(token: str) -> Application:
                 CallbackQueryHandler(helper2_item_selected, pattern=r"^HELP2:ITEM:[A-Z_]+:[A-Z_]+$"),
                 CallbackQueryHandler(helper2_confirm, pattern=r"^HELP2:CONFIRM:[A-Z_]+:[A-Z_]+$"),
                 CallbackQueryHandler(helper2_back_to_menu, pattern=r"^HELP2:BACK:MENU$"),
+                CallbackQueryHandler(helper2_request_start, pattern=r"^HELP2:REQUEST:START:WANT$"),
                 CallbackQueryHandler(helper_category_selected, pattern=r"^(HELPER:CATEGORY|HELPER:CATEGORY_ID):.*"),
                 CallbackQueryHandler(helper_option_selected, pattern=r"^HELPER:OPTION:.*"),
                 CallbackQueryHandler(helper_confirm, pattern=r"^HELPER:CONFIRM:.*"),
                 CallbackQueryHandler(helper_back_to_menu, pattern=r"^HELPER:BACK:MENU$"),
                 CallbackQueryHandler(helper_back_to_options, pattern=r"^HELPER:BACK:OPTIONS:.*"),
+                # Capture custom free-form requests first (text/voice/video)
+                MessageHandler((filters.TEXT & ~filters.COMMAND) | filters.VOICE | filters.VIDEO, handle_custom_request),
                 # Optional phone capture by text when requested
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_text),
                 # Orders section
