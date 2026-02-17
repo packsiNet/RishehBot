@@ -25,6 +25,7 @@ from keyboards import (
     helper2_item_actions_kb,
     helper2_health_assess_kb,
     helper2_alzheimer_screen_kb,
+    helper2_hosting_experience_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -141,6 +142,15 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
         )
         await query.edit_message_text(text, reply_markup=helper2_alzheimer_screen_kb(cat_key), parse_mode=ParseMode.HTML)
+    elif cat_key == "MEMORIES" and item_key == "HOSTING_EXPERIENCE":
+        text = (
+            "🍽️ سور (مهمان‌کردن و ساخت تجربه)\n\n"
+            "اگه می‌خوای عزیزت رو مهمون کنی و یه تجربه خوب براش بسازی، این گزینه برای توئه 🎉\n"
+            "ریشه هماهنگی رزرو، طراحی تجربه مناسبتی، اجرای برنامه و گزارش نهایی رو مدیریت می‌کنه.\n"
+            "تو جزئیات رو می‌گی ✍️، ما پیگیری می‌کنیم تا اتفاق درست و دقیق اجرا بشه ✨\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_hosting_experience_kb(cat_key), parse_mode=ParseMode.HTML)
     else:
         text = (
             f"{cat_title}\n\n"
