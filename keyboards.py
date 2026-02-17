@@ -52,6 +52,58 @@ def website_kb(url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+# Helper v2 keyboards
+def helper2_main_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("⚜️ سلامت پیشگیرانه⚜️", callback_data="HELP2:CAT:PREVENTIVE")],
+        [InlineKeyboardButton("⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور⚜️", callback_data="HELP2:CAT:MEMORIES")],
+        [InlineKeyboardButton("⚜️ انجام نیازهای روزمره⚜️", callback_data="HELP2:CAT:DAILY")],
+        [InlineKeyboardButton("⚜️ میخوام .....⚜️", callback_data="HELP2:CAT:WANT")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def helper2_category_kb(category_key: str) -> InlineKeyboardMarkup:
+    mapping = {
+        "PREVENTIVE": [
+            ("HEALTH_ASSESS", "سنجش سلامت 📋"),
+            ("ALZHEIMER_SCREEN", "🧠 غربالگری آلزایمر"),
+            ("SPECIAL_CHECKUPS", "چکاپ‌های تخصصی 🏥"),
+            ("HOME_REDESIGN", "🏠 بازطراحی محیط زندگی سالمندان"),
+        ],
+        "MEMORIES": [
+            ("HOSTING_EXPERIENCE", "سور (مهمان‌کردن و ساخت تجربه) 🍽️"),
+            ("SURPRISE", "🎶 سورپرایز (اجرای غافلگیرکننده)"),
+            ("GIFT_FLOWERS_SWEETS", "خرید هدیه، گل و شیرینی 🌸"),
+        ],
+        "DAILY": [
+            ("DAILY_SHOPPING", "خرید روزمره 🧺"),
+            ("DIGITAL_HELP", "💻 حل مشکلات دیجیتالی"),
+        ],
+        "WANT": [
+            ("WANT_HEALTH_TRACK", "می‌خوام پیگیر وضعیت سلامت خانواده و عزیزان باشم!"),
+            ("WANT_SURPRISE", "می‌خوام خانواده یا یکی از عزیزانم رو سوپرایز یا خوشحال کنم!"),
+            ("WANT_SEND_GIFT", "میخوام برای خانوده یا یکی از عزیزانم هدیه، گل یا شیرینی ارسال کنم!"),
+            ("WANT_REMOTE_HELP", "نیاز به همیاری دارن و من از راه دور نمی‌تونم انجامش بدم!"),
+            ("WANT_NOT_FOUND", "اونی که می‌خوام اینحا نیست!"),
+        ],
+    }
+    rows = []
+    for key, label in mapping.get(category_key, []):
+        rows.append([InlineKeyboardButton(label, callback_data=f"HELP2:ITEM:{category_key}:{key}")])
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="HELP2:BACK:MENU")])
+    return InlineKeyboardMarkup(rows)
+
+
+def helper2_item_actions_kb(category_key: str, item_key: str) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:{item_key}")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
 def helper_menu_kb(categories: List[tuple[int, str]]) -> InlineKeyboardMarkup:
     buttons: List[List[InlineKeyboardButton]] = []
     for cid, title in categories:

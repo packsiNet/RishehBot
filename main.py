@@ -22,6 +22,10 @@ from handlers.start import start, back_to_main
 from handlers.about import open_trust, open_whatis, open_ask
 from handlers.helper import (
     open_helper_menu,
+    helper2_open_category,
+    helper2_item_selected,
+    helper2_confirm,
+    helper2_back_to_menu,
     helper_category_selected,
     helper_option_selected,
     helper_confirm,
@@ -88,8 +92,12 @@ def build_app(token: str) -> Application:
                 CallbackQueryHandler(open_trust, pattern=r"^NAV:TRUST$"),
                 CallbackQueryHandler(open_whatis, pattern=r"^NAV:WHATIS$"),
                 CallbackQueryHandler(open_ask, pattern=r"^NAV:ASK$"),
-                # Helper section
+                # Helper section (v2)
                 CallbackQueryHandler(open_helper_menu, pattern=r"^NAV:HELPER$"),
+                CallbackQueryHandler(helper2_open_category, pattern=r"^HELP2:CAT:[A-Z_]+$"),
+                CallbackQueryHandler(helper2_item_selected, pattern=r"^HELP2:ITEM:[A-Z_]+:[A-Z_]+$"),
+                CallbackQueryHandler(helper2_confirm, pattern=r"^HELP2:CONFIRM:[A-Z_]+:[A-Z_]+$"),
+                CallbackQueryHandler(helper2_back_to_menu, pattern=r"^HELP2:BACK:MENU$"),
                 CallbackQueryHandler(helper_category_selected, pattern=r"^(HELPER:CATEGORY|HELPER:CATEGORY_ID):.*"),
                 CallbackQueryHandler(helper_option_selected, pattern=r"^HELPER:OPTION:.*"),
                 CallbackQueryHandler(helper_confirm, pattern=r"^HELPER:CONFIRM:.*"),

@@ -15,7 +15,15 @@ from telegram.ext import ContextTypes
 
 from db.database import get_session
 from db.crud import create_order
-from keyboards import helper_menu_kb, helper_options_kb, helper_confirm_kb, after_confirm_kb
+from keyboards import (
+    helper_menu_kb,
+    helper_options_kb,
+    helper_confirm_kb,
+    after_confirm_kb,
+    helper2_main_kb,
+    helper2_category_kb,
+    helper2_item_actions_kb,
+)
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
 
@@ -54,13 +62,120 @@ CATEGORY_OPTIONS: Dict[str, List[str]] = {
 
 
 async def open_helper_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Show helper categories from the database."""
+    """Show new helper v2 menu with predefined categories and intro."""
     query = update.callback_query
     await query.answer()
+    text = (
+        "🌿 همراهی از اینجا شروع میشه!\n"
+        "همراهی می‌تونه از توجه به سلامتی 🩺، رسیدگی به امور روزمره 🛍️\n"
+        "یا حتی یک سوپرایز که حال دل رو بهتر می‌کنه 🎁 شروع بشه.\n"
+        "بهمون بگو ریشه چیکار می‌تونه برات انجام بده؟ 🤍\n"
+        "برای اطلاعات بیشتر از هر سرویس، می‌تونی روی هرکدوم کلیک کنی تا توضیحات کامل برات ارسال بشه ✨"
+    )
+    await query.edit_message_text(text, reply_markup=helper2_main_kb(), parse_mode=ParseMode.HTML)
+    return 1
+
+
+def _helper2_titles():
+    cat_titles = {
+        "PREVENTIVE": "⚜️ سلامت پیشگیرانه⚜️",
+        "MEMORIES": "⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور⚜️",
+        "DAILY": "⚜️ انجام نیازهای روزمره⚜️",
+        "WANT": "⚜️ میخوام .....⚜️",
+    }
+    item_titles = {
+        "HEALTH_ASSESS": "سنجش سلامت 📋",
+        "ALZHEIMER_SCREEN": "🧠 غربالگری آلزایمر",
+        "SPECIAL_CHECKUPS": "چکاپ‌های تخصصی 🏥",
+        "HOME_REDESIGN": "🏠 بازطراحی محیط زندگی سالمندان",
+        "HOSTING_EXPERIENCE": "سور (مهمان‌کردن و ساخت تجربه) 🍽️",
+        "SURPRISE": "🎶 سورپرایز (اجرای غافلگیرکننده)",
+        "GIFT_FLOWERS_SWEETS": "خرید هدیه، گل و شیرینی 🌸",
+        "DAILY_SHOPPING": "خرید روزمره 🧺",
+        "DIGITAL_HELP": "💻 حل مشکلات دیجیتالی",
+        "WANT_HEALTH_TRACK": "می‌خوام پیگیر وضعیت سلامت خانواده و عزیزان باشم!",
+        "WANT_SURPRISE": "می‌خوام خانواده یا یکی از عزیزانم رو سوپرایز یا خوشحال کنم!",
+        "WANT_SEND_GIFT": "میخوام برای خانوده یا یکی از عزیزانم هدیه، گل یا شیرینی ارسال کنم!",
+        "WANT_REMOTE_HELP": "نیاز به همیاری دارن و من از راه دور نمی‌تونم انجامش بدم!",
+        "WANT_NOT_FOUND": "اونی که می‌خوام اینحا نیست!",
+    }
+    return cat_titles, item_titles
+
+
+async def helper2_open_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, cat_key = query.data.split(":", 2)
+    cat_titles, _ = _helper2_titles()
+    header = cat_titles.get(cat_key, "—")
+    await query.edit_message_text(header, reply_markup=helper2_category_kb(cat_key), parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, cat_key, item_key = query.data.split(":", 3)
+    cat_titles, item_titles = _helper2_titles()
+    cat_title = cat_titles.get(cat_key, "—")
+    item_title = item_titles.get(item_key, "—")
+    text = (
+        f"{cat_title}\n\n"
+        f"خدمت انتخابی: {item_title}\n\n"
+        "برای ثبت سفارش و پیگیری توسط تیم ریشه، دکمه زیر را بزن."
+    )
+    await query.edit_message_text(text, reply_markup=helper2_item_actions_kb(cat_key, item_key), parse_mode=ParseMode.HTML)
+    return 1
+
+
+async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    _, _, cat_key, item_key = query.data.split(":", 3)
+    _, item_titles = _helper2_titles()
+    cat_title = cat_key
+    item_title = item_titles.get(item_key, item_key)
+    user = update.effective_user
+    full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
     async with get_session() as session:
-        cats = await get_categories(session)
-    categories = [(c.id, c.title) for c in cats]
-    await query.edit_message_text("همیار ریشه\n\nیک دسته‌بندی را انتخاب کنید.", reply_markup=helper_menu_kb(categories), parse_mode=ParseMode.HTML)
+        user_row = await get_or_create_user_by_telegram(
+            session,
+            int(user.id),
+            username=user.username if user else None,
+            full_name=full_name,
+            update_if_exists=False,
+        )
+        tracking_code = _generate_tracking_code()
+        await create_order(
+            session,
+            int(user_row.id),
+            tracking_code,
+            "درحال انجام",
+            category_key=cat_title,
+            option_title=item_title,
+        )
+    text = (
+        "سفارش شما ثبت شد ✅\n\n"
+        f"کد پیگیری: {tracking_code}\n"
+        "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
+    )
+    await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
+    display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
+    await _notify_admins_new_order(context, user_row.telegram_id, display_name, tracking_code, cat_title, item_title, user_row.username)
+    return 1
+
+
+async def helper2_back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    text = (
+        "🌿 همراهی از اینجا شروع میشه!\n"
+        "همراهی می‌تونه از توجه به سلامتی 🩺، رسیدگی به امور روزمره 🛍️\n"
+        "یا حتی یک سوپرایز که حال دل رو بهتر می‌کنه 🎁 شروع بشه.\n"
+        "بهمون بگو ریشه چیکار می‌تونه برات انجام بده؟ 🤍\n"
+        "برای اطلاعات بیشتر از هر سرویس، می‌تونی روی هرکدوم کلیک کنی تا توضیحات کامل برات ارسال بشه ✨"
+    )
+    await query.edit_message_text(text, reply_markup=helper2_main_kb(), parse_mode=ParseMode.HTML)
     return 1
 
 
