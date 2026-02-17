@@ -31,6 +31,7 @@ from keyboards import (
     helper2_home_redesign_kb,
     helper2_special_checkups_kb,
     helper2_daily_shopping_kb,
+    helper2_digital_help_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -208,6 +209,21 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
         )
         await query.edit_message_text(text, reply_markup=helper2_daily_shopping_kb(cat_key), parse_mode=ParseMode.HTML)
+    elif cat_key == "DAILY" and item_key == "DIGITAL_HELP":
+        text = (
+            "💻 همراهی در خدمات دیجیتال\n\n"
+            "برای خیلی از سالمندان، انجام کارهای دیجیتال ساده نیست.\n"
+            "از خرید اشتراک پلتفرم‌های نمایش خانگی 🎬\n"
+            "گرفته تا خرید اینترنت 🌐، نصب و راه‌اندازی تجهیزات، تنظیم تلویزیون 📺 یا حتی نصب نرم‌افزارهای موردنیاز.\n"
+            "اگه عزیزت در انجام این کارها نیاز به همراهی داره،\n"
+            "ریشه هماهنگ می‌کنه تا فردی متخصص کمکش کنه 👨🏻‍🔧\n"
+            "تو درخواست رو ثبت می‌کنی ✍️،\n"
+            "ما هماهنگی و اجرا رو مدیریت می‌کنیم\n"
+            "و نتیجه انجام کار رو برات گزارش می‌دیم 📄\n"
+            "هدف؛ کم‌کردن وابستگی و ساده‌تر کردن زندگی روزمره 🤍\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_digital_help_kb(cat_key), parse_mode=ParseMode.HTML)
     else:
         text = (
             f"{cat_title}\n\n"
