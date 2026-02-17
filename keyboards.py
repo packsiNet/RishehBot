@@ -12,11 +12,13 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def main_menu() -> InlineKeyboardMarkup:
-    """Main menu with three actions."""
+    """Main menu with revised actions."""
     buttons = [
-        [InlineKeyboardButton("همیــار ریـشه", callback_data="NAV:HELPER")],
-        [InlineKeyboardButton("پیگیـری سفارش", callback_data="NAV:ORDERS")],
-        [InlineKeyboardButton("دربـاره ریـشه", callback_data="NAV:ABOUT")],
+        [InlineKeyboardButton("🚀 شروع همراهی 🚀", callback_data="NAV:HELPER")],
+        [InlineKeyboardButton("📌 پیگیری سفارشاتم 📌", callback_data="NAV:ORDERS")],
+        [InlineKeyboardButton("🔎 چطور به ریشه اعتماد کنم؟ 🔎", callback_data="NAV:TRUST")],
+        [InlineKeyboardButton("💬 اگه نمی‌دونی؛ از من بپرس! 💬", callback_data="NAV:ASK")],
+        [InlineKeyboardButton("🌿 ریشه چیه؟ 🌿", callback_data="NAV:WHATIS")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -26,7 +28,6 @@ def admin_main_menu() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("لیست سفارشات ثبت شده", callback_data="NAV:ADMIN_ORDERS")],
         [InlineKeyboardButton("مدیریت کاربران", callback_data="NAV:ADMIN_USERS")],
-        [InlineKeyboardButton("درباره ریشه", callback_data="NAV:ABOUT")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -35,21 +36,10 @@ def back_to_main_button() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")]])
 
 
-def about_menu_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton("اعتبار ریشه", callback_data="ABOUT:CRED")],
-        [InlineKeyboardButton("ریشه در ایران", callback_data="ABOUT:IRAN")],
-        [InlineKeyboardButton("کانال تلگرام", callback_data="ABOUT:CHANNEL")],
-        [InlineKeyboardButton("وبسایت", callback_data="ABOUT:WEBSITE")],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
-    ]
-    return InlineKeyboardMarkup(buttons)
-
-
 def channel_kb(url: str) -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("مشاهده کانال", url=url)],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ABOUT")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -57,7 +47,7 @@ def channel_kb(url: str) -> InlineKeyboardMarkup:
 def website_kb(url: str) -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("مشاهده وبسایت", url=url)],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ABOUT")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
 

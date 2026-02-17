@@ -1,6 +1,4 @@
-"""
-About section handlers.
-"""
+"""Info section handlers simplified."""
 
 from __future__ import annotations
 
@@ -8,63 +6,41 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from keyboards import about_menu_kb, channel_kb, website_kb
+from keyboards import back_to_main_button
 
 
-ABOUT_INTRO = (
-    "درباره ریشه\n\n"
-    "برای مشاهده اطلاعات، یکی از گزینه‌ها را انتخاب کنید."
-)
-
-
-async def open_about_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Show about menu."""
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(ABOUT_INTRO, reply_markup=about_menu_kb(), parse_mode=ParseMode.HTML)
-    return 1
-
-
-async def about_cred(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def open_trust(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     text = (
-        "اعتبار ریشه\n\n"
-        "ریشه با تکیه بر تیم متخصص و شبکه همیارانِ مورداعتماد فعالیت می‌کند."
+        "چطور به ریشه اعتماد کنم؟\n\n"
+        "ریشه با اتکا به همیاران احرازشده، سازوکار پیگیری شفاف و ثبت سفارش با کد رهگیری کار می‌کند. "
+        "ارزیابی کیفی خدمات و ارتباط مستقیم با تیم پشتیبانی برای هر سفارش فراهم است."
     )
-    await query.edit_message_text(text, reply_markup=about_menu_kb(), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=back_to_main_button(), parse_mode=ParseMode.HTML)
     return 1
 
 
-async def about_iran(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def open_whatis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     text = (
-        "ریشه در ایران\n\n"
-        "ما در سراسر ایران همراه خانواده‌ها هستیم و خدمات همیاری را پوشش می‌دهیم."
+        "ریشه چیه؟\n\n"
+        "ریشه یک سرویس همراهی و مراقبت خانوادگیه که خدمات سلامت، همراهی و کارهای روزمره را "
+        "به‌صورت یکپارچه برای عزیزانت فراهم می‌کند تا حتی از دور کنارشان بمانی."
     )
-    await query.edit_message_text(text, reply_markup=about_menu_kb(), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=back_to_main_button(), parse_mode=ParseMode.HTML)
     return 1
 
 
-async def about_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def open_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     text = (
-        "کانال تلگرام\n\n"
-        "آخرین اخبار و اطلاع‌رسانی‌ها را در کانال ما دنبال کنید."
+        "سوالت رو بپرس!\n\n"
+        "هر سوالی داری همینجا تایپ کن تا راهنمایی‌ت کنیم. "
+        "اگر موضوعت فوریه، از طریق ثبت سفارش در «شروع همراهی» اقدام کن."
     )
-    await query.edit_message_text(text, reply_markup=channel_kb("https://t.me/risheh"), parse_mode=ParseMode.HTML)
-    return 1
-
-
-async def about_website(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    await query.answer()
-    text = (
-        "وبسایت ریشه\n\n"
-        "برای اطلاعات بیشتر و خدمات آنلاین، به وبسایت مراجعه کنید."
-    )
-    await query.edit_message_text(text, reply_markup=website_kb("https://risheh.app"), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(text, reply_markup=back_to_main_button(), parse_mode=ParseMode.HTML)
     return 1
 

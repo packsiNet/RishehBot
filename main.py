@@ -19,7 +19,7 @@ from telegram.ext import (
 )
 
 from handlers.start import start, back_to_main
-from handlers.about import open_about_menu, about_cred, about_iran, about_channel, about_website
+from handlers.about import open_trust, open_whatis, open_ask
 from handlers.helper import (
     open_helper_menu,
     helper_category_selected,
@@ -84,12 +84,10 @@ def build_app(token: str) -> Application:
             MENU: [
                 # Main / Back
                 CallbackQueryHandler(back_to_main, pattern=r"^BACK:MAIN$"),
-                # About section
-                CallbackQueryHandler(open_about_menu, pattern=r"^NAV:ABOUT$"),
-                CallbackQueryHandler(about_cred, pattern=r"^ABOUT:CRED$"),
-                CallbackQueryHandler(about_iran, pattern=r"^ABOUT:IRAN$"),
-                CallbackQueryHandler(about_channel, pattern=r"^ABOUT:CHANNEL$"),
-                CallbackQueryHandler(about_website, pattern=r"^ABOUT:WEBSITE$"),
+                # Info section
+                CallbackQueryHandler(open_trust, pattern=r"^NAV:TRUST$"),
+                CallbackQueryHandler(open_whatis, pattern=r"^NAV:WHATIS$"),
+                CallbackQueryHandler(open_ask, pattern=r"^NAV:ASK$"),
                 # Helper section
                 CallbackQueryHandler(open_helper_menu, pattern=r"^NAV:HELPER$"),
                 CallbackQueryHandler(helper_category_selected, pattern=r"^(HELPER:CATEGORY|HELPER:CATEGORY_ID):.*"),
