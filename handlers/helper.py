@@ -27,6 +27,7 @@ from keyboards import (
     helper2_alzheimer_screen_kb,
     helper2_hosting_experience_kb,
     helper2_surprise_kb,
+    helper2_gift_flowers_sweets_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids
@@ -160,6 +161,15 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
         )
         await query.edit_message_text(text, reply_markup=helper2_surprise_kb(cat_key), parse_mode=ParseMode.HTML)
+    elif cat_key == "MEMORIES" and item_key == "GIFT_FLOWERS_SWEETS":
+        text = (
+            "🎁 خرید هدیه، گل و شیرینی\n\n"
+            "اگه می‌خوای هدیه، گل 🌸 یا شیرینی 🍰 برای عزیزت در ایران ارسال کنی، اینجا ثبت کن.\n"
+            "ریشه از تأمین‌کننده‌های معتبر در شهر مقصد خرید رو هماهنگ می‌کنه و روند انتخاب، پرداخت، تحویل و تأیید انجام رو مدیریت می‌کنه.\n"
+            "تمرکز این خدمته: کیفیت قابل اتکا ✔️، قیمت شفاف 💳، و اطمینان از تحویل 📦\n"
+            "برای اطلاع از نحوه سفارش و اینکه سنجش سلامت چطور انجام میشه، حتما ویدیو/ فایل بالا رو نگاه کن 🎥📎"
+        )
+        await query.edit_message_text(text, reply_markup=helper2_gift_flowers_sweets_kb(cat_key), parse_mode=ParseMode.HTML)
     else:
         text = (
             f"{cat_title}\n\n"
