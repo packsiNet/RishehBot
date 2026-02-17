@@ -287,9 +287,11 @@ async def handle_custom_request(update: Update, context: ContextTypes.DEFAULT_TY
             option_title="درخواست سفارشی",
         )
     confirm_text = (
-        "درخواست شما ثبت شد ✅\n\n"
-        f"کد پیگیری: {tracking_code}\n"
-        "تیم ریشه درخواست را بررسی می‌کند و نتیجه به شما اطلاع داده می‌شود."
+        "✅ درخواستت ثبت شد.\n"
+        "تیم ریشه بررسیش می‌کنه 🔎 تا امکان انجامش رو بسنجه.\n"
+        "به‌محض اینکه نتیجه بررسی مشخص بشه،\n"
+        "باهات ارتباط می‌گیریم 📞 و جزئیات رو برات توضیح می‌دیم.\n"
+        "🤍 ممنون که برای همراهی، ریشه رو انتخاب کردی."
     )
     await update.message.reply_text(confirm_text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
     display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
