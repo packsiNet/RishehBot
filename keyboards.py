@@ -113,6 +113,15 @@ def helper2_health_assess_kb(category_key: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+def helper2_alzheimer_screen_kb(category_key: str) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:ALZHEIMER_SCREEN")],
+        [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
 def helper_menu_kb(categories: List[tuple[int, str]]) -> InlineKeyboardMarkup:
     buttons: List[List[InlineKeyboardButton]] = []
     for cid, title in categories:
