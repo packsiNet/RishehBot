@@ -345,18 +345,7 @@ async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             except Exception:
                 pass
         if not joined:
-            text = (
-                "📢 قبل از اینکه ادامه بدیم،\n"
-                "لازمه عضو کانال رسمی ریشه باشی.\n"
-                "توی کانال ریشه،\n"
-                "اطلاعیه‌های مهم 📌، به‌روزرسانی خدمات 🔄، تغییرات فرآیندها\n"
-                "و خبرهای مرتبط با سفارش‌هات منتشر می‌شه.\n"
-                "عضویت توی کانال کمک می‌کنه\n"
-                "هیچ اطلاع مهمی رو از دست ندی ❗\n"
-                "و همیشه در جریان آخرین خدمات و شرایط باشی 🔔\n"
-                "اول عضو کانال شو،\n"
-                "بعد برگرد همین‌جا تا ادامه مسیر رو با هم جلو ببریم 🤍"
-            )
+            text = "برای ثبت سفارش، عضویت در کانال الزامی است."
             await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, str(join_url)), parse_mode=ParseMode.HTML)
             return 1
     async with get_session() as session:
@@ -408,12 +397,7 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
             except Exception:
                 pass
         if not joined:
-            text = (
-                "📢 قبل از اینکه ادامه بدیم،\n"
-                "لازمه عضو کانال رسمی ریشه باشی.\n"
-                "توی کانال ریشه، اطلاعیه‌ها و تغییرات مهم منتشر می‌شه.\n"
-                "بعد از عضویت روی «بررسی عضویت» بزن."
-            )
+            text = "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید."
             await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, str(join_url)), parse_mode=ParseMode.HTML)
             return 1
     # If reached here, proceed to confirm like helper2_confirm
