@@ -240,7 +240,7 @@ def after_confirm_kb() -> InlineKeyboardMarkup:
 def force_join_kb(channel_url: str, category_id: int, idx: int) -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("عضویت در کانال", url=channel_url)],
-        [InlineKeyboardButton("بررسی عضویت", callback_data=f"HELPER:CHECK_JOIN:{category_id}:{idx}")],
+        [InlineKeyboardButton("بررسی عضویت و ثبت سفارش", callback_data=f"HELPER:CHECK_JOIN:{category_id}:{idx}")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELPER:BACK:OPTIONS:{category_id}")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -248,9 +248,9 @@ def force_join_kb(channel_url: str, category_id: int, idx: int) -> InlineKeyboar
 
 def orders_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("سفارشات در دست بررسی", callback_data="ORDERS:FILTER:ACTIVE")],
-        [InlineKeyboardButton("سفارشات پایان یافته", callback_data="ORDERS:FILTER:DONE")],
-        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+        [InlineKeyboardButton("⏳ سفارش‌های درحال انجام", callback_data="ORDERS:FILTER:ACTIVE")],
+        [InlineKeyboardButton("✅ سفارش‌های تکمیل شده", callback_data="ORDERS:FILTER:DONE")],
+        [InlineKeyboardButton("بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -273,6 +273,13 @@ def orders_named_list_kb(entries: List[tuple[str, str]]) -> InlineKeyboardMarkup
     for label, code in entries:
         buttons.append([InlineKeyboardButton(label, callback_data=f"ORDERS:CODE:{code}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:BACK:MENU")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def orders_done_detail_kb(code: str) -> InlineKeyboardMarkup:
+    buttons: List[List[InlineKeyboardButton]] = []
+    buttons.append([InlineKeyboardButton("🔁 ثبت مجدد همین سفارش", callback_data=f"ORDERS:REORDER:{code}")])
+    buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:FILTER:DONE")])
     return InlineKeyboardMarkup(buttons)
 
 

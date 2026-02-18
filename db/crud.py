@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from sqlalchemy import select
+from sqlalchemy import func as _func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Order, Category, Item, User, CustomRequest
@@ -138,6 +139,16 @@ async def update_order_status_by_code(session: AsyncSession, tracking_code: str,
     if not order:
         return False
     order.status = new_status
+    if new_status == "انجام شده":
+        try:
+            order.done_at = _func.now()
+        except Exception:
+            pass
+    else:
+        try:
+            order.done_at = None
+        except Exception:
+            pass
     await session.commit()
     return True
 

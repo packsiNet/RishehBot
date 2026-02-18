@@ -111,6 +111,8 @@ async def _ensure_order_columns() -> None:
             alters.append("ALTER TABLE orders ADD COLUMN full_name VARCHAR(128)")
         if 'username' not in cols:
             alters.append("ALTER TABLE orders ADD COLUMN username VARCHAR(64)")
+        if 'done_at' not in cols:
+            alters.append("ALTER TABLE orders ADD COLUMN done_at TIMESTAMP NULL")
         for sql in alters:
             try:
                 await session.execute(text(sql))
