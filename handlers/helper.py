@@ -387,8 +387,8 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
     query = update.callback_query
     await query.answer()
     _, _, cat_key, item_key = query.data.split(":", 3)
-    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+wq00h6LuLBsyOWJk")
-    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+rCWTosVz0hI1Yzlk")
+    channel_id = os.getenv("-1003885629418") or os.getenv("MANDATORY_CHANNEL_USERNAME")
     user = update.effective_user
     if channel_id:
         try:
