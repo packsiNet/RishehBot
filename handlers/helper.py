@@ -534,7 +534,15 @@ def _normalize_channel_id(cid: str | int) -> str | int:
 
 async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
     try:
-        member = await bot.get_chat_member(chat_id=_normalize_channel_id(channel_id), user_id=user_id)
+        chat_ref = _normalize_channel_id(channel_id)
+        # Resolve @username to numeric ID for more reliable checks
+        if isinstance(chat_ref, str) and chat_ref.startswith("@"):
+            try:
+                chat = await bot.get_chat(chat_ref)
+                chat_ref = chat.id
+            except Exception:
+                pass
+        member = await bot.get_chat_member(chat_id=chat_ref, user_id=user_id)
         status = getattr(member, "status", None)
         joined = status in (
             ChatMemberStatus.MEMBER,
@@ -545,7 +553,7 @@ async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
         if not joined:
             try:
                 logging.getLogger(__name__).info(
-                    "Join check: user=%s status=%s channel=%s", user_id, status, channel_id
+                    "Join check: user=%s status=%s channel_ref=%s (orig=%s)", user_id, status, chat_ref, channel_id
                 )
             except Exception:
                 pass
