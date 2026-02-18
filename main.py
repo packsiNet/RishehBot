@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import os as _os
 
 from telegram.ext import (
     Application,
@@ -149,6 +150,24 @@ def build_app(token: str) -> Application:
 
 
 def main() -> None:
+    def _load_env_file():
+        p = _os.path.join(_os.getcwd(), ".env")
+        if _os.path.isfile(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        s = line.strip()
+                        if not s or s.startswith("#") or "=" not in s:
+                            continue
+                        k, v = s.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k and k not in _os.environ:
+                            _os.environ[k] = v
+            except Exception:
+                pass
+
+    _load_env_file()
     token = os.getenv("BOT_TOKEN")
     if not token:
         raise RuntimeError("BOT_TOKEN env variable is required")
