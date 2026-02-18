@@ -38,7 +38,7 @@ from handlers.helper import (
     helper_back_to_options,
     handle_phone_text,
 )
-from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected
+from handlers.orders import open_orders_menu, orders_filter_selected, order_code_selected, orders_reorder
 from handlers.admin import (
     open_admin_orders_menu,
     admin_orders_filter_selected,

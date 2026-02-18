@@ -544,7 +544,7 @@ async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
         joined = status in (
             ChatMemberStatus.MEMBER,
             ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.OWNER,
+            ChatMemberStatus.CREATOR,
             ChatMemberStatus.RESTRICTED,
         )
         if not joined:
