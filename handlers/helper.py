@@ -543,13 +543,8 @@ async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
             except Exception:
                 pass
         member = await bot.get_chat_member(chat_id=chat_ref, user_id=user_id)
-        status = getattr(member, "status", None)
-        joined = status in (
-            ChatMemberStatus.MEMBER,
-            ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.CREATOR,
-            ChatMemberStatus.RESTRICTED,
-        )
+        status = str(getattr(member, "status", "")).lower()
+        joined = status in {"member", "administrator", "creator", "restricted"}
         if not joined:
             try:
                 logging.getLogger(__name__).info(
