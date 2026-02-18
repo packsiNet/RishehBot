@@ -47,35 +47,48 @@ async def _seed_initial_data() -> None:
     if SessionLocal is None:
         return
     async with SessionLocal() as session:
-        # Check if categories exist
-        from sqlalchemy import select
+        from sqlalchemy import select, delete
 
-        res = await session.execute(select(Category))
-        existing = list(res.scalars().all())
-        if existing:
-            return
-
-        # Seed categories
-        cat_titles = [
-            "⚜️ سلامت پیشگیرانه ⚜️",
-            "⚜️ ساخت لحظه‌های به‌یاد ماندنی از راه‌دور ⚜️",
-            "⚜️ انجام نیازهای روزمره ⚜️",
-            "⚜️ میخـوام ... ⚜️",
-        ]
-        cats: list[Category] = [Category(title=t) for t in cat_titles]
-        session.add_all(cats)
+        # Clear existing data as per user request (items currently in DB are unused)
+        # This will cascade delete items due to relationship settings
+        await session.execute(delete(Category))
         await session.flush()
 
-        # Seed items per category (aligning with previous options)
-        items_by_idx = {
-            0: ["", "", ""],
-            1: ["", "", ""],
-            2: ["", "", ""],
-            3: ["", "", ""],
+        # Seed data based on "Start Cooperation" (Helper V2) structure
+        seed_data = {
+            "⚜️ سلامت پیشگیرانه": [
+                "🚨 تماس اضطراری",
+                "📋 سنجش سلامت",
+                "🧠 غربالگری آلزایمر",
+                "🏥 چکاپ‌های تخصصی",
+                "🏠 بازطراحی محیط زندگی سالمندان"
+            ],
+            "⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور": [
+                "🍽️ سور (مهمان‌کردن و ساخت تجربه)",
+                "🎶 سورپرایز (اجرای غافلگیرکننده)",
+                "🌸 خرید هدیه، گل و شیرینی"
+            ],
+            "⚜️ انجام نیازهای روزمره": [
+                "🧺 خرید روزمره",
+                "💻 حل مشکلات دیجیتالی"
+            ],
+            "⚜️ میخوام .....": [
+                "می‌خوام پیگیر وضعیت سلامت خانواده و عزیزان باشم!",
+                "می‌خوام خانواده یا یکی از عزیزانم رو سوپرایز یا خوشحال کنم!",
+                "میخوام برای خانوده یا یکی از عزیزانم هدیه، گل یا شیرینی ارسال کنم!",
+                "نیاز به همیاری دارن و من از راه دور نمی‌تونم انجامش بدم!",
+                "اونی که می‌خوام اینحا نیست!"
+            ]
         }
-        for idx, cat in enumerate(cats):
-            titles = items_by_idx.get(idx, [])
-            session.add_all([Item(category_id=cat.id, title=t) for t in titles])
+
+        for cat_title, items in seed_data.items():
+            cat = Category(title=cat_title)
+            session.add(cat)
+            await session.flush()  # Need ID for items
+            
+            for item_title in items:
+                session.add(Item(category_id=cat.id, title=item_title))
+        
         await session.commit()
 
 
