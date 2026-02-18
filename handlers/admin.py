@@ -30,6 +30,7 @@ from keyboards import (
     admin_named_orders_list_kb,
 )
 from db.models import User
+from datetime import datetime
 from db.crud import (
     count_users,
     get_users_paged,
@@ -48,12 +49,24 @@ STATUS_MAP = {
     "CANCEL": "کنسل شده",
 }
 
+def _format_jalali(dt: datetime | None) -> str:
+    if not dt:
+        return "—"
+    try:
+        import jdatetime
+        return jdatetime.datetime.fromgregorian(datetime=dt).strftime("%Y/%m/%d %H:%M")
+    except Exception:
+        try:
+            return dt.strftime("%Y/%m/%d %H:%M")
+        except Exception:
+            return str(dt)
+
 
 async def open_admin_orders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     text = (
-        "مدیریت سفارش‌ها\n\n"
+        "<b>مدیریت سفارش‌ها</b>\n\n"
         "یکی از گروه‌های زیر را انتخاب کنید تا لیست تمام سفارش‌ها نمایش داده شود."
     )
     await query.edit_message_text(text, reply_markup=admin_orders_menu_kb(), parse_mode=ParseMode.HTML)
@@ -93,7 +106,7 @@ async def admin_orders_group_selected(update: Update, context: ContextTypes.DEFA
             label = f"{it.title} ({cnt})"
             pairs.append((it.id, label))
     title = ADMIN_GROUPS[group_key]["name"]
-    await query.edit_message_text(f"{title}\n\nیک آیتم را انتخاب کنید:", reply_markup=admin_items_menu_kb(pairs, group_key), parse_mode=ParseMode.HTML)
+    await query.edit_message_text(f"<b>{title}</b>\n\nیک آیتم را انتخاب کنید:", reply_markup=admin_items_menu_kb(pairs, group_key), parse_mode=ParseMode.HTML)
     return 1
 
 
@@ -156,7 +169,7 @@ async def admin_orders_group_item_page(update: Update, context: ContextTypes.DEF
 async def open_admin_users_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text("مدیریت کاربران", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
+    await query.edit_message_text("<b>مدیریت کاربران</b>", reply_markup=admin_users_menu_kb(), parse_mode=ParseMode.HTML)
     return 1
 
 
@@ -181,7 +194,7 @@ async def open_users_list(update: Update, context: ContextTypes.DEFAULT_TYPE, pa
         btns.append((u.id, label))
     has_prev = page > 0
     has_next = (offset + PAGE_SIZE) < total
-    header = f"تعداد کل کاربران: {total}\n\nسفارش‌دهندگان ثبت‌شده:" if total else "کاربری یافت نشد."
+    header = f"<b>تعداد کل کاربران:</b> {total}\n\nسفارش‌دهندگان ثبت‌شده:" if total else "کاربری یافت نشد."
     await query.edit_message_text(header, reply_markup=admin_users_list_kb(btns, page, has_prev, has_next), parse_mode=ParseMode.HTML)
     return 1
 
@@ -210,7 +223,7 @@ async def admin_user_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
         return 1
     display_name = user.full_name.strip() if user.full_name and user.full_name.strip() else (f"@{user.username.strip()}" if user.username and str(user.username).strip() else "کاربر ناشناس")
     text = (
-        f"مشخصات کاربر:\n"
+        f"<b>مشخصات کاربر</b>\n"
         f"نام نمایشی: {display_name}"
     )
     await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page, user.role_id), parse_mode=ParseMode.HTML)
@@ -234,7 +247,7 @@ async def admin_set_user_role(update: Update, context: ContextTypes.DEFAULT_TYPE
     display_name = user.full_name.strip() if user.full_name and user.full_name.strip() else (f"@{user.username.strip()}" if user.username and str(user.username).strip() else "کاربر ناشناس")
     text = (
         f"نقش کاربر به {verb} تغییر کرد.\n\n"
-        f"نام نمایشی: {display_name}"
+        f"<b>نام نمایشی:</b> {display_name}"
     )
     await query.edit_message_text(text, reply_markup=admin_user_actions_kb(user.id, page, user.role_id), parse_mode=ParseMode.HTML)
     return 1
@@ -296,16 +309,20 @@ async def admin_order_code_selected(update: Update, context: ContextTypes.DEFAUL
     full_name = getattr(user, "full_name", "—") if user else "—"
     username = getattr(user, "username", None) if user else None
     phone = getattr(user, "phone_number", "—") if user else "—"
+    created = _format_jalali(getattr(order, "created_at", None))
+    done = _format_jalali(getattr(order, "done_at", None))
     text = (
-        f"مشخصات کاربر:\n"
+        f"<b>مشخصات کاربر</b>\n"
         f"نام کامل: {full_name}\n"
         f"نام‌کاربری: {username or '—'}\n"
         f"موبایل: {phone}\n\n"
-        f"جزئیات سفارش:\n"
+        f"<b>جزئیات سفارش</b>\n"
         f"کد پیگیری: {order.tracking_code}\n"
         f"وضعیت: {order.status}\n"
         f"دسته: {order.category_key or '—'}\n"
         f"آیتم: {order.option_title or '—'}\n"
+        f"تاریخ ثبت: {created}\n"
+        f"تاریخ انجام: {done}"
     )
     # Rebuild last list for back
     filt = context.user_data.get("admin_orders_list_status")
@@ -383,16 +400,20 @@ async def set_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     full_name = getattr(user, "full_name", "—") if user else "—"
     username = getattr(user, "username", None) if user else None
     phone = getattr(user, "phone_number", "—") if user else "—"
+    created = _format_jalali(getattr(order, "created_at", None))
+    done = _format_jalali(getattr(order, "done_at", None))
     text = (
-        f"مشخصات کاربر:\n"
+        f"<b>مشخصات کاربر</b>\n"
         f"نام کامل: {full_name}\n"
         f"نام‌کاربری: {username or '—'}\n"
         f"موبایل: {phone}\n\n"
-        f"جزئیات سفارش:\n"
+        f"<b>جزئیات سفارش</b>\n"
         f"کد پیگیری: {order.tracking_code}\n"
         f"وضعیت: {order.status}\n"
         f"دسته: {order.category_key or '—'}\n"
         f"آیتم: {order.option_title or '—'}\n"
+        f"تاریخ ثبت: {created}\n"
+        f"تاریخ انجام: {done}"
     )
     kb = admin_order_actions_kb(username, code)
     await query.edit_message_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)

@@ -346,7 +346,7 @@ def admin_orders_list_kb(tracking_codes: List[str], filt: str, page: int, has_pr
     if has_prev:
         nav.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ORDERS_ADMIN:PAGE:{filt}:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ORDERS_ADMIN:PAGE:{filt}:{page+1}"))
+        nav.append(InlineKeyboardButton("➡️ ادامه", callback_data=f"ORDERS_ADMIN:PAGE:{filt}:{page+1}"))
     if nav:
         rows.append(nav)
     rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_ORDERS")])
@@ -422,7 +422,7 @@ def admin_named_orders_list_kb(entries: List[tuple[str, str]], group_key: str, i
     if has_prev:
         nav.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ORDERS_ADMIN:GROUP_ITEM_PAGE:{group_key}:{item_id}:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ORDERS_ADMIN:GROUP_ITEM_PAGE:{group_key}:{item_id}:{page+1}"))
+        nav.append(InlineKeyboardButton("➡️ ادامه", callback_data=f"ORDERS_ADMIN:GROUP_ITEM_PAGE:{group_key}:{item_id}:{page+1}"))
     if nav:
         rows.append(nav)
     rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data=f"ORDERS_ADMIN:GROUP:{group_key}")])
@@ -452,7 +452,7 @@ def admin_users_list_kb(user_buttons: List[tuple[int, str]], page: int, has_prev
     if has_prev:
         nav_row.append(InlineKeyboardButton("⬅️ قبلی", callback_data=f"ADMIN_USERS:PAGE:{page-1}"))
     if has_next:
-        nav_row.append(InlineKeyboardButton("ادامه ➡️", callback_data=f"ADMIN_USERS:PAGE:{page+1}"))
+        nav_row.append(InlineKeyboardButton("➡️ ادامه", callback_data=f"ADMIN_USERS:PAGE:{page+1}"))
     if nav_row:
         rows.append(nav_row)
     rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:ADMIN_USERS")])
