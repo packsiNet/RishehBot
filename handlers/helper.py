@@ -508,9 +508,21 @@ def _mandatory_channel() -> tuple[str | None, str | None]:
     return chan_id, join_url
 
 
+def _normalize_channel_id(cid: str | int) -> str | int:
+    if isinstance(cid, int):
+        return cid
+    s = str(cid).strip()
+    if s.lstrip("-").isdigit():
+        try:
+            return int(s)
+        except Exception:
+            return s
+    return s if s.startswith("@") else s
+
+
 async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
     try:
-        member = await bot.get_chat_member(chat_id=channel_id, user_id=user_id)
+        member = await bot.get_chat_member(chat_id=_normalize_channel_id(channel_id), user_id=user_id)
         return member.status in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
     except Exception:
         return False
