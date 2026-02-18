@@ -508,14 +508,15 @@ def _now_jalali_str() -> str:
 
 def _mandatory_channel() -> tuple[str | None, str | None]:
     join_url = os.getenv("MANDATORY_CHANNEL_URL")
+    uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
     chan_id = os.getenv("MANDATORY_CHANNEL_ID")
-    # برای کانال خصوصی توصیه می‌شود فقط از ID استفاده شود؛ اگر ID نبود، برای کانال عمومی از username استفاده می‌کنیم
-    if not chan_id:
-        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
-        if uname:
-            chan_id = uname
-            if not join_url:
-                join_url = f"https://t.me/{uname.lstrip('@')}"
+    # اگر نام کاربری کانال تنظیم شده باشد، نسبت به ID اولویت دارد (برای کانال عمومی)
+    if uname:
+        if not uname.startswith("@"):
+            uname = f"@{uname}"
+        chan_id = uname
+        if not join_url:
+            join_url = f"https://t.me/{uname.lstrip('@')}"
     return chan_id, join_url
 
 

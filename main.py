@@ -166,7 +166,7 @@ def main() -> None:
                         k, v = s.split("=", 1)
                         k = k.strip()
                         v = v.strip().strip('"').strip("'")
-                        if k and k not in _os.environ:
+                        if k:
                             _os.environ[k] = v
             except Exception:
                 pass
