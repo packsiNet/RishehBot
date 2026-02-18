@@ -46,6 +46,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             )
     # Choose menu based on role
     kb = main_menu()
+    is_admin = False
     if user:
         async with get_session() as session:
             db_user = await get_or_create_user_by_telegram(session, user.id, update_if_exists=False)
@@ -58,14 +59,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 db_user.role_id = 1
             if db_user and db_user.role_id == 1:
                 kb = admin_main_menu()
+                is_admin = True
     if update.message:
-        video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "files", "RishehVideo.mp4")
-        if os.path.exists(video_path):
-            try:
-                with open(video_path, "rb") as vf:
-                    await update.message.reply_video(video=vf)
-            except Exception:
-                pass
+        if not is_admin:
+            video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "files", "RishehVideo.mp4")
+            if os.path.exists(video_path):
+                try:
+                    with open(video_path, "rb") as vf:
+                        await update.message.reply_video(video=vf)
+                except Exception:
+                    pass
         await update.message.reply_text(WELCOME_TEXT, reply_markup=kb, parse_mode=ParseMode.HTML)
     elif update.callback_query:
         query = update.callback_query
