@@ -14,11 +14,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 def main_menu() -> InlineKeyboardMarkup:
     """Main menu with revised actions."""
     buttons = [
-        [InlineKeyboardButton("🚀 شروع همراهی 🚀", callback_data="NAV:HELPER")],
-        [InlineKeyboardButton("📌 پیگیری سفارشاتم 📌", callback_data="NAV:ORDERS")],
-        [InlineKeyboardButton("🔎 چطور به ریشه اعتماد کنم؟ 🔎", callback_data="NAV:TRUST")],
-        [InlineKeyboardButton("💬 اگه نمی‌دونی؛ از من بپرس! 💬", callback_data="NAV:ASK")],
-        [InlineKeyboardButton("🌿 ریشه چیه؟ 🌿", callback_data="NAV:WHATIS")],
+        [InlineKeyboardButton("🚀 شروع همراهی", callback_data="NAV:HELPER")],
+        [InlineKeyboardButton("📌 پیگیری سفارشاتم", callback_data="NAV:ORDERS")],
+        [InlineKeyboardButton("🔒 چطور به ریشه اعتماد کنم؟", callback_data="NAV:TRUST")],
+        [InlineKeyboardButton("💬 اگه نمی‌دونی؛ از من بپرس!", callback_data="NAV:ASK")],
+        [InlineKeyboardButton("🌿 ریشه چیه؟", callback_data="NAV:WHATIS")],
         [InlineKeyboardButton("🌿 ارتباط با ریشه", callback_data="NAV:CONTACT")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -56,10 +56,10 @@ def website_kb(url: str) -> InlineKeyboardMarkup:
 # Helper v2 keyboards
 def helper2_main_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("⚜️ سلامت پیشگیرانه⚜️", callback_data="HELP2:CAT:PREVENTIVE")],
-        [InlineKeyboardButton("⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور⚜️", callback_data="HELP2:CAT:MEMORIES")],
-        [InlineKeyboardButton("⚜️ انجام نیازهای روزمره⚜️", callback_data="HELP2:CAT:DAILY")],
-        [InlineKeyboardButton("⚜️ میخوام .....⚜️", callback_data="HELP2:CAT:WANT")],
+        [InlineKeyboardButton("⚜️ سلامت پیشگیرانه", callback_data="HELP2:CAT:PREVENTIVE")],
+        [InlineKeyboardButton("⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور", callback_data="HELP2:CAT:MEMORIES")],
+        [InlineKeyboardButton("⚜️ انجام نیازهای روزمره", callback_data="HELP2:CAT:DAILY")],
+        [InlineKeyboardButton("⚜️ میخوام .....", callback_data="HELP2:CAT:WANT")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -68,18 +68,18 @@ def helper2_main_kb() -> InlineKeyboardMarkup:
 def helper2_category_kb(category_key: str) -> InlineKeyboardMarkup:
     mapping = {
         "PREVENTIVE": [
-            ("HEALTH_ASSESS", "سنجش سلامت 📋"),
+            ("HEALTH_ASSESS", "📋 سنجش سلامت"),
             ("ALZHEIMER_SCREEN", "🧠 غربالگری آلزایمر"),
-            ("SPECIAL_CHECKUPS", "چکاپ‌های تخصصی 🏥"),
+            ("SPECIAL_CHECKUPS", "🏥 چکاپ‌های تخصصی"),
             ("HOME_REDESIGN", "🏠 بازطراحی محیط زندگی سالمندان"),
         ],
         "MEMORIES": [
-            ("HOSTING_EXPERIENCE", "سور (مهمان‌کردن و ساخت تجربه) 🍽️"),
+            ("HOSTING_EXPERIENCE", "🍽️ سور (مهمان‌کردن و ساخت تجربه)"),
             ("SURPRISE", "🎶 سورپرایز (اجرای غافلگیرکننده)"),
-            ("GIFT_FLOWERS_SWEETS", "خرید هدیه، گل و شیرینی 🌸"),
+            ("GIFT_FLOWERS_SWEETS", "🌸 خرید هدیه، گل و شیرینی"),
         ],
         "DAILY": [
-            ("DAILY_SHOPPING", "خرید روزمره 🧺"),
+            ("DAILY_SHOPPING", "🧺 خرید روزمره"),
             ("DIGITAL_HELP", "💻 حل مشکلات دیجیتالی"),
         ],
         "WANT": [
@@ -99,7 +99,7 @@ def helper2_category_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_item_actions_kb(category_key: str, item_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:{item_key}")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:{item_key}")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -107,7 +107,7 @@ def helper2_item_actions_kb(category_key: str, item_key: str) -> InlineKeyboardM
 
 def helper2_health_assess_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:HEALTH_ASSESS")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:HEALTH_ASSESS")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -116,7 +116,7 @@ def helper2_health_assess_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_alzheimer_screen_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:ALZHEIMER_SCREEN")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:ALZHEIMER_SCREEN")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -125,7 +125,7 @@ def helper2_alzheimer_screen_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_hosting_experience_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:HOSTING_EXPERIENCE")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:HOSTING_EXPERIENCE")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -134,7 +134,7 @@ def helper2_hosting_experience_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_surprise_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:SURPRISE")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:SURPRISE")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -143,7 +143,7 @@ def helper2_surprise_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_gift_flowers_sweets_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:GIFT_FLOWERS_SWEETS")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:GIFT_FLOWERS_SWEETS")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -152,7 +152,7 @@ def helper2_gift_flowers_sweets_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_home_redesign_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:HOME_REDESIGN")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:HOME_REDESIGN")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -161,7 +161,7 @@ def helper2_home_redesign_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_special_checkups_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:SPECIAL_CHECKUPS")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:SPECIAL_CHECKUPS")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -170,7 +170,7 @@ def helper2_special_checkups_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_daily_shopping_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:DAILY_SHOPPING")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:DAILY_SHOPPING")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -179,7 +179,7 @@ def helper2_daily_shopping_kb(category_key: str) -> InlineKeyboardMarkup:
 
 def helper2_digital_help_kb(category_key: str) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش 📝", callback_data=f"HELP2:CONFIRM:{category_key}:DIGITAL_HELP")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELP2:CONFIRM:{category_key}:DIGITAL_HELP")],
         [InlineKeyboardButton("💬 اگه سوال داری، از من بپرس!", callback_data="NAV:ASK")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
@@ -224,7 +224,7 @@ def helper_options_kb(category_id: int, count: int = 3) -> InlineKeyboardMarkup:
 
 def helper_confirm_kb(category_id: int, idx: int) -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("ثبت سفارش", callback_data=f"HELPER:CONFIRM:{category_id}:{idx}")],
+        [InlineKeyboardButton("📝 ثبت سفارش", callback_data=f"HELPER:CONFIRM:{category_id}:{idx}")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELPER:BACK:OPTIONS:{category_id}")],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -250,7 +250,7 @@ def orders_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("⏳ سفارش‌های درحال انجام", callback_data="ORDERS:FILTER:ACTIVE")],
         [InlineKeyboardButton("✅ سفارش‌های تکمیل شده", callback_data="ORDERS:FILTER:DONE")],
-        [InlineKeyboardButton("بازگشت", callback_data="BACK:MAIN")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -294,9 +294,9 @@ def support_kb(username: str = "rishehsupport") -> InlineKeyboardMarkup:
 
 def contact_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("📱 سوشال ریشه 📱", callback_data="CONTACT:SOCIALS")],
-        [InlineKeyboardButton("🌐 وبسایت ریشه🌐", callback_data="CONTACT:WEBSITE")],
-        [InlineKeyboardButton("💬 ادمین ریشه💬", callback_data="CONTACT:SUPPORT")],
+        [InlineKeyboardButton("📱 سوشال ریشه", callback_data="CONTACT:SOCIALS")],
+        [InlineKeyboardButton("🌐 وبسایت ریشه", callback_data="CONTACT:WEBSITE")],
+        [InlineKeyboardButton("💬 ادمین ریشه", callback_data="CONTACT:SUPPORT")],
         [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
     ]
     return InlineKeyboardMarkup(buttons)

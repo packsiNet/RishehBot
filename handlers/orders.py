@@ -52,10 +52,10 @@ async def open_orders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         pass
 
     text = (
-        "🔄 همراهی همیشه برقراره!\n"
+        "<b>🔄 همراهی همیشه برقراره!</b>\n"
         "اگه قبلاً از ریشه خدمتی گرفتی یا سفارشی ثبت کردی،\n"
         "اینجا می‌تونی وضعیتش رو ببینی 👀\n\n"
-        f"📊 وضعیت سفارش‌ها:\n"
+        f"<b>📊 وضعیت سفارش‌ها:</b>\n"
         f"- ⏳ درحال انجام: {active_count}\n"
         f"- ✅ تکمیل شده: {done_count}"
     )
@@ -134,10 +134,10 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     created = _format_jalali(getattr(order, "created_at", None))
     name = order.option_title if (order.option_title and order.option_title.strip()) else "—"
     text = (
-        f"🔢 شماره سفارش: {order.tracking_code}\n\n"
-        f"📌 نام سفارش: {name}\n\n"
-        f"📅 تاریخ ثبت: {created}\n\n"
-        f"📍 وضعیت: {status_text}"
+        f"<b>🔢 شماره سفارش:</b> {order.tracking_code}\n"
+        f"<b>📌 نام سفارش:</b> {name}\n"
+        f"<b>📅 تاریخ ثبت:</b> {created}\n"
+        f"<b>📍 وضعیت:</b> {status_text}"
     )
     # Rebuild last list for back or provide DONE detail actions
     filt = context.user_data.get("orders_list_status")
@@ -181,4 +181,3 @@ async def orders_reorder(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
     await query.edit_message_text(text, reply_markup=orders_menu_kb(), parse_mode=ParseMode.HTML)
     return 1
-
