@@ -38,16 +38,7 @@ async def open_trust(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return 1
 
 
-async def open_whatis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    query = update.callback_query
-    await query.answer()
-    text = (
-        "ریشه چیه؟\n\n"
-        "ریشه یک سرویس همراهی و مراقبت خانوادگیه که خدمات سلامت، همراهی و کارهای روزمره را "
-        "به‌صورت یکپارچه برای عزیزانت فراهم می‌کند تا حتی از دور کنارشان بمانی."
-    )
-    await query.edit_message_text(text, reply_markup=back_to_main_button(), parse_mode=ParseMode.HTML)
-    return 1
+ 
 
 
 async def open_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

@@ -18,7 +18,6 @@ def main_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("📌 پیگیری سفارشاتم", callback_data="NAV:ORDERS")],
         [InlineKeyboardButton("🔒 چطور به ریشه اعتماد کنم؟", callback_data="NAV:TRUST")],
         [InlineKeyboardButton("💬 اگه نمی‌دونی؛ از من بپرس!", callback_data="NAV:ASK")],
-        [InlineKeyboardButton("🌿 ریشه چیه؟", callback_data="NAV:WHATIS")],
         [InlineKeyboardButton("🌿 ارتباط با ریشه", callback_data="NAV:CONTACT")],
     ]
     return InlineKeyboardMarkup(buttons)
