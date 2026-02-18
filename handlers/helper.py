@@ -333,28 +333,23 @@ async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     item_title = item_titles.get(item_key, item_key)
     user = update.effective_user
     full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
-    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+wq00h6LuLBsyOWJk")
-    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
-    if channel_id:
-        try:
-            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
-            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
-                text = (
-                    "📢 قبل از اینکه ادامه بدیم،\n"
-                    "لازمه عضو کانال رسمی ریشه باشی.\n"
-                    "توی کانال ریشه،\n"
-                    "اطلاعیه‌های مهم 📌، به‌روزرسانی خدمات 🔄، تغییرات فرآیندها\n"
-                    "و خبرهای مرتبط با سفارش‌هات منتشر می‌شه.\n"
-                    "عضویت توی کانال کمک می‌کنه\n"
-                    "هیچ اطلاع مهمی رو از دست ندی ❗\n"
-                    "و همیشه در جریان آخرین خدمات و شرایط باشی 🔔\n"
-                    "اول عضو کانال شو،\n"
-                    "بعد برگرد همین‌جا تا ادامه مسیر رو با هم جلو ببریم 🤍"
-                )
-                await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, join_url), parse_mode=ParseMode.HTML)
-                return 1
-        except Exception:
-            pass
+    channel_id, join_url = _mandatory_channel()
+    if channel_id and join_url:
+        if not await _is_user_joined(context.bot, channel_id, user.id):
+            text = (
+                "📢 قبل از اینکه ادامه بدیم،\n"
+                "لازمه عضو کانال رسمی ریشه باشی.\n"
+                "توی کانال ریشه،\n"
+                "اطلاعیه‌های مهم 📌، به‌روزرسانی خدمات 🔄، تغییرات فرآیندها\n"
+                "و خبرهای مرتبط با سفارش‌هات منتشر می‌شه.\n"
+                "عضویت توی کانال کمک می‌کنه\n"
+                "هیچ اطلاع مهمی رو از دست ندی ❗\n"
+                "و همیشه در جریان آخرین خدمات و شرایط باشی 🔔\n"
+                "اول عضو کانال شو،\n"
+                "بعد برگرد همین‌جا تا ادامه مسیر رو با هم جلو ببریم 🤍"
+            )
+            await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, str(join_url)), parse_mode=ParseMode.HTML)
+            return 1
     async with get_session() as session:
         user_row = await get_or_create_user_by_telegram(
             session,
@@ -387,23 +382,18 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
     query = update.callback_query
     await query.answer()
     _, _, cat_key, item_key = query.data.split(":", 3)
-    join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+rCWTosVz0hI1Yzlk")
-    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    channel_id, join_url = _mandatory_channel()
     user = update.effective_user
-    if channel_id:
-        try:
-            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
-            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
-                text = (
-                    "📢 قبل از اینکه ادامه بدیم،\n"
-                    "لازمه عضو کانال رسمی ریشه باشی.\n"
-                    "توی کانال ریشه، اطلاعیه‌ها و تغییرات مهم منتشر می‌شه.\n"
-                    "بعد از عضویت روی «بررسی عضویت» بزن."
-                )
-                await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, join_url), parse_mode=ParseMode.HTML)
-                return 1
-        except Exception:
-            pass
+    if channel_id and join_url:
+        if not await _is_user_joined(context.bot, channel_id, user.id):
+            text = (
+                "📢 قبل از اینکه ادامه بدیم،\n"
+                "لازمه عضو کانال رسمی ریشه باشی.\n"
+                "توی کانال ریشه، اطلاعیه‌ها و تغییرات مهم منتشر می‌شه.\n"
+                "بعد از عضویت روی «بررسی عضویت» بزن."
+            )
+            await query.edit_message_text(text, reply_markup=helper2_force_join_kb(cat_key, item_key, str(join_url)), parse_mode=ParseMode.HTML)
+            return 1
     # If reached here, proceed to confirm like helper2_confirm
     _, item_titles = _helper2_titles()
     item_title = item_titles.get(item_key, item_key)
@@ -505,6 +495,27 @@ def _now_jalali_str() -> str:
         return datetime.now().strftime("%Y/%m/%d %H:%M")
 
 
+def _mandatory_channel() -> tuple[str | None, str | None]:
+    join_url = os.getenv("MANDATORY_CHANNEL_URL")
+    chan_id = os.getenv("MANDATORY_CHANNEL_ID")
+    # برای کانال خصوصی توصیه می‌شود فقط از ID استفاده شود؛ اگر ID نبود، برای کانال عمومی از username استفاده می‌کنیم
+    if not chan_id:
+        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
+        if uname:
+            chan_id = uname
+            if not join_url:
+                join_url = f"https://t.me/{uname.lstrip('@')}"
+    return chan_id, join_url
+
+
+async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
+    try:
+        member = await bot.get_chat_member(chat_id=channel_id, user_id=user_id)
+        return member.status in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
+    except Exception:
+        return False
+
+
 async def _notify_admins_new_order(context: ContextTypes.DEFAULT_TYPE, user_tel_id: int, user_display: str, tracking_code: str, category_title: str | None, item_title: str | None, username: str | None) -> None:
     # Fetch admins (role_id=1) from DB dynamically
     try:
@@ -546,26 +557,12 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
     user = update.effective_user
 
-    join_url = os.getenv("MANDATORY_CHANNEL_URL")
-    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
-    if not join_url:
-        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
-        if uname:
-            join_url = f"https://t.me/{uname.lstrip('@')}"
-    if channel_id and user and join_url:
-        try:
-            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
-            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
-                await query.edit_message_text(
-                    "برای ثبت سفارش، عضویت در کانال الزامی است.",
-                    reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
-                    parse_mode=ParseMode.HTML,
-                )
-                return 1
-        except Exception:
+    channel_id, join_url = _mandatory_channel()
+    if channel_id and join_url and user:
+        if not await _is_user_joined(context.bot, channel_id, user.id):
             await query.edit_message_text(
                 "برای ثبت سفارش، عضویت در کانال الزامی است.",
-                reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                reply_markup=force_join_kb(str(join_url), int(category_id), int(idx)),
                 parse_mode=ParseMode.HTML,
             )
             return 1
@@ -620,26 +617,12 @@ async def helper_check_join(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
     user = update.effective_user
 
-    join_url = os.getenv("MANDATORY_CHANNEL_URL")
-    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
-    if not join_url:
-        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
-        if uname:
-            join_url = f"https://t.me/{uname.lstrip('@')}"
-    if channel_id and user and join_url:
-        try:
-            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
-            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
-                await query.edit_message_text(
-                    "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید.",
-                    reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
-                    parse_mode=ParseMode.HTML,
-                )
-                return 1
-        except Exception:
+    channel_id, join_url = _mandatory_channel()
+    if channel_id and join_url and user:
+        if not await _is_user_joined(context.bot, channel_id, user.id):
             await query.edit_message_text(
                 "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید.",
-                reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                reply_markup=force_join_kb(str(join_url), int(category_id), int(idx)),
                 parse_mode=ParseMode.HTML,
             )
             return 1
