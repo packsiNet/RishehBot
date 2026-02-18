@@ -91,10 +91,10 @@ async def open_helper_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 def _helper2_titles():
     cat_titles = {
-        "PREVENTIVE": "⚜️ سلامت پیشگیرانه⚜️",
-        "MEMORIES": "⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور⚜️",
-        "DAILY": "⚜️ انجام نیازهای روزمره⚜️",
-        "WANT": "⚜️ میخوام .....⚜️",
+        "PREVENTIVE": "⚜️ سلامت پیشگیرانه ⚜️",
+        "MEMORIES": "⚜️ تجربه لحظه‌های به‌یاد ماندنی از راه‌دور ⚜️",
+        "DAILY": "⚜️ انجام نیازهای روزمره ⚜️",
+        "WANT": "⚜️ میخوام ..... ⚜️",
     }
     item_titles = {
         "EMERGENCY_CALL": "🚨 تماس اضطراری",
