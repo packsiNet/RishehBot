@@ -19,6 +19,7 @@ def main_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🔎 چطور به ریشه اعتماد کنم؟ 🔎", callback_data="NAV:TRUST")],
         [InlineKeyboardButton("💬 اگه نمی‌دونی؛ از من بپرس! 💬", callback_data="NAV:ASK")],
         [InlineKeyboardButton("🌿 ریشه چیه؟ 🌿", callback_data="NAV:WHATIS")],
+        [InlineKeyboardButton("🌿 ارتباط با ریشه", callback_data="NAV:CONTACT")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -231,8 +232,7 @@ def helper_confirm_kb(category_id: int, idx: int) -> InlineKeyboardMarkup:
 
 def after_confirm_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton("بازگشت به منوی اصلی", callback_data="BACK:MAIN")],
-        [InlineKeyboardButton("پیگیری سفارش", callback_data="NAV:ORDERS")],
+        [InlineKeyboardButton("📌 پیگیری سفارش‌ها", callback_data="NAV:ORDERS")],
     ]
     return InlineKeyboardMarkup(buttons)
 
@@ -280,6 +280,55 @@ def orders_done_detail_kb(code: str) -> InlineKeyboardMarkup:
     buttons: List[List[InlineKeyboardButton]] = []
     buttons.append([InlineKeyboardButton("🔁 ثبت مجدد همین سفارش", callback_data=f"ORDERS:REORDER:{code}")])
     buttons.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="ORDERS:FILTER:DONE")])
+    return InlineKeyboardMarkup(buttons)
+
+
+def support_kb(username: str = "rishehsupport") -> InlineKeyboardMarkup:
+    url = f"https://t.me/{str(username).lstrip('@')}"
+    buttons = [
+        [InlineKeyboardButton("گفتگو با پشتیبانی", url=url)],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def contact_menu_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("📱 سوشال ریشه 📱", callback_data="CONTACT:SOCIALS")],
+        [InlineKeyboardButton("🌐 وبسایت ریشه🌐", callback_data="CONTACT:WEBSITE")],
+        [InlineKeyboardButton("💬 ادمین ریشه💬", callback_data="CONTACT:SUPPORT")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def socials_links_kb(tg_url: str, ig_url: str, yt_url: str, li_url: str) -> InlineKeyboardMarkup:
+    rows: List[List[InlineKeyboardButton]] = []
+    if tg_url:
+        rows.append([InlineKeyboardButton("📲 کانال تلگرام ریشه", url=tg_url)])
+    if ig_url:
+        rows.append([InlineKeyboardButton("📸 صفحه اینستاگرام ریشه", url=ig_url)])
+    if yt_url:
+        rows.append([InlineKeyboardButton("🎥 صفحه یوتیوب ریشه", url=yt_url)])
+    if li_url:
+        rows.append([InlineKeyboardButton("💼 صفحه لینکدین ریشه", url=li_url)])
+    rows.append([InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:CONTACT")])
+    return InlineKeyboardMarkup(rows)
+
+
+def contact_website_kb(url: str) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("🌍 وبسایت ریشه", url=url)],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="NAV:CONTACT")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def trust_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("🚀 شروع همراهی", callback_data="NAV:HELPER")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data="BACK:MAIN")],
+    ]
     return InlineKeyboardMarkup(buttons)
 
 

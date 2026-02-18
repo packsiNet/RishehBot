@@ -20,7 +20,7 @@ from telegram.ext import (
 )
 
 from handlers.start import start, back_to_main
-from handlers.about import open_trust, open_whatis, open_ask
+from handlers.about import open_trust, open_whatis, open_ask, open_contact_menu, open_contact_socials, open_contact_website, open_contact_support
 from handlers.helper import (
     open_helper_menu,
     helper2_open_category,
@@ -96,6 +96,10 @@ def build_app(token: str) -> Application:
                 # Info section
                 CallbackQueryHandler(open_trust, pattern=r"^NAV:TRUST$"),
                 CallbackQueryHandler(open_whatis, pattern=r"^NAV:WHATIS$"),
+                CallbackQueryHandler(open_contact_menu, pattern=r"^NAV:CONTACT$"),
+                CallbackQueryHandler(open_contact_socials, pattern=r"^CONTACT:SOCIALS$"),
+                CallbackQueryHandler(open_contact_website, pattern=r"^CONTACT:WEBSITE$"),
+                CallbackQueryHandler(open_contact_support, pattern=r"^CONTACT:SUPPORT$"),
                 CallbackQueryHandler(open_ask, pattern=r"^NAV:ASK$"),
                 # Helper section (v2)
                 CallbackQueryHandler(open_helper_menu, pattern=r"^NAV:HELPER$"),

@@ -377,9 +377,14 @@ async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             option_title=item_title,
         )
     text = (
-        "سفارش شما ثبت شد ✅\n\n"
-        f"کد پیگیری: {tracking_code}\n"
-        "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
+        "✅ سفارشت با موفقیت ثبت شد.\n"
+        "الان درخواستت وارد مرحله بررسی و هماهنگی شده 🔎\n"
+        "و تیم ریشه پیگیریش رو شروع می‌کنه.\n"
+        "اگه نیاز به توضیح یا هماهنگی بیشتری باشه،\n"
+        "کارشناسانمون باهات ارتباط می‌گیرن 📞\n"
+        "می‌تونی هر زمان از بخش «پیگیری سفارشاتم»\n"
+        "وضعیت سفارشت رو ببینی 📊\n"
+        "🤍 از اینکه برای همراهی خانواده‌ت ریشه رو انتخاب کردی، خوشحالیم."
     )
     await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
     display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))
@@ -434,9 +439,14 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
             option_title=item_title,
         )
     text = (
-        "سفارش شما ثبت شد ✅\n\n"
-        f"کد پیگیری: {tracking_code}\n"
-        "پشتیبانی ریشه تا یکساعت آینده با شما تماس خواهد گرفت."
+        "✅ سفارشت با موفقیت ثبت شد.\n"
+        "الان درخواستت وارد مرحله بررسی و هماهنگی شده 🔎\n"
+        "و تیم ریشه پیگیریش رو شروع می‌کنه.\n"
+        "اگه نیاز به توضیح یا هماهنگی بیشتری باشه،\n"
+        "کارشناسانمون باهات ارتباط می‌گیرن 📞\n"
+        "می‌تونی هر زمان از بخش «پیگیری سفارشاتم»\n"
+        "وضعیت سفارشت رو ببینی 📊\n"
+        "🤍 از اینکه برای همراهی خانواده‌ت ریشه رو انتخاب کردی، خوشحالیم."
     )
     await query.edit_message_text(text, reply_markup=after_confirm_kb(), parse_mode=ParseMode.HTML)
     display_name = (user_row.full_name.strip() if user_row.full_name and user_row.full_name.strip() else (f"@{user_row.username.strip()}" if user_row.username and str(user_row.username).strip() else "کاربر ناشناس"))

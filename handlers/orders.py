@@ -134,9 +134,9 @@ async def order_code_selected(update: Update, context: ContextTypes.DEFAULT_TYPE
     created = _format_jalali(getattr(order, "created_at", None))
     name = order.option_title if (order.option_title and order.option_title.strip()) else "—"
     text = (
-        f"🔢 شماره سفارش: {order.tracking_code}\n"
-        f"📌 نام سفارش: {name}\n"
-        f"📅 تاریخ ثبت: {created}\n"
+        f"🔢 شماره سفارش: {order.tracking_code}\n\n"
+        f"📌 نام سفارش: {name}\n\n"
+        f"📅 تاریخ ثبت: {created}\n\n"
         f"📍 وضعیت: {status_text}"
     )
     # Rebuild last list for back or provide DONE detail actions
