@@ -11,6 +11,7 @@ from datetime import datetime
 
 from telegram import Update, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode, ChatMemberStatus
+import logging
 from telegram.ext import ContextTypes
 
 from db.database import get_session
@@ -335,7 +336,15 @@ async def helper2_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     full_name = user.full_name if hasattr(user, "full_name") else (f"{user.first_name} {getattr(user, 'last_name', '')}".strip() if user else None)
     channel_id, join_url = _mandatory_channel()
     if channel_id and join_url:
-        if not await _is_user_joined(context.bot, channel_id, user.id):
+        joined = await _is_user_joined(context.bot, channel_id, user.id)
+        dbg = os.getenv("DEBUG_JOIN_CHECK", "").lower() in ("1", "true", "yes", "on")
+        if dbg:
+            try:
+                norm = _normalize_channel_id(channel_id)
+                await query.message.reply_text(f"join_debug: channel={channel_id} norm={norm} joined={'✅' if joined else '❌'}")
+            except Exception:
+                pass
+        if not joined:
             text = (
                 "📢 قبل از اینکه ادامه بدیم،\n"
                 "لازمه عضو کانال رسمی ریشه باشی.\n"
@@ -385,7 +394,15 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
     channel_id, join_url = _mandatory_channel()
     user = update.effective_user
     if channel_id and join_url:
-        if not await _is_user_joined(context.bot, channel_id, user.id):
+        joined = await _is_user_joined(context.bot, channel_id, user.id)
+        dbg = os.getenv("DEBUG_JOIN_CHECK", "").lower() in ("1", "true", "yes", "on")
+        if dbg:
+            try:
+                norm = _normalize_channel_id(channel_id)
+                await query.message.reply_text(f"join_debug: channel={channel_id} norm={norm} joined={'✅' if joined else '❌'}")
+            except Exception:
+                pass
+        if not joined:
             text = (
                 "📢 قبل از اینکه ادامه بدیم،\n"
                 "لازمه عضو کانال رسمی ریشه باشی.\n"
@@ -523,8 +540,28 @@ def _normalize_channel_id(cid: str | int) -> str | int:
 async def _is_user_joined(bot, channel_id: str | int, user_id: int) -> bool:
     try:
         member = await bot.get_chat_member(chat_id=_normalize_channel_id(channel_id), user_id=user_id)
-        return member.status in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
-    except Exception:
+        status = getattr(member, "status", None)
+        joined = status in (
+            ChatMemberStatus.MEMBER,
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+            ChatMemberStatus.RESTRICTED,
+        )
+        if not joined:
+            try:
+                logging.getLogger(__name__).info(
+                    "Join check: user=%s status=%s channel=%s", user_id, status, channel_id
+                )
+            except Exception:
+                pass
+        return joined
+    except Exception as e:
+        try:
+            logging.getLogger(__name__).warning(
+                "Join check error for user=%s channel=%s: %s", user_id, channel_id, e
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -571,7 +608,15 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     channel_id, join_url = _mandatory_channel()
     if channel_id and join_url and user:
-        if not await _is_user_joined(context.bot, channel_id, user.id):
+        joined = await _is_user_joined(context.bot, channel_id, user.id)
+        dbg = os.getenv("DEBUG_JOIN_CHECK", "").lower() in ("1", "true", "yes", "on")
+        if dbg:
+            try:
+                norm = _normalize_channel_id(channel_id)
+                await query.message.reply_text(f"join_debug: channel={channel_id} norm={norm} joined={'✅' if joined else '❌'}")
+            except Exception:
+                pass
+        if not joined:
             await query.edit_message_text(
                 "برای ثبت سفارش، عضویت در کانال الزامی است.",
                 reply_markup=force_join_kb(str(join_url), int(category_id), int(idx)),
@@ -631,7 +676,15 @@ async def helper_check_join(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     channel_id, join_url = _mandatory_channel()
     if channel_id and join_url and user:
-        if not await _is_user_joined(context.bot, channel_id, user.id):
+        joined = await _is_user_joined(context.bot, channel_id, user.id)
+        dbg = os.getenv("DEBUG_JOIN_CHECK", "").lower() in ("1", "true", "yes", "on")
+        if dbg:
+            try:
+                norm = _normalize_channel_id(channel_id)
+                await query.message.reply_text(f"join_debug: channel={channel_id} norm={norm} joined={'✅' if joined else '❌'}")
+            except Exception:
+                pass
+        if not joined:
             await query.edit_message_text(
                 "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید.",
                 reply_markup=force_join_kb(str(join_url), int(category_id), int(idx)),
