@@ -62,7 +62,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 is_admin = True
     display_name = (f"@{user.username}" if getattr(user, "username", None) else (user.full_name if hasattr(user, "full_name") and user.full_name else "ادمین"))
     admin_text = (
-        f"{display_name} عزیز خوش آمدید.\n\n"
+        f"کاربر عزیز : {display_name} خوش آمدید.\n\n"
         "از اینجا می‌توانید مدیریت سفارشات ثبت‌شده و مدیریت کاربران را انجام دهید."
     )
     if update.message:
