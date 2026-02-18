@@ -35,6 +35,7 @@ from keyboards import (
     helper2_digital_help_kb,
     helper2_want_request_kb,
     helper2_force_join_kb,
+    helper2_emergency_info_kb,
 )
 from db.database import get_session
 from db.crud import get_categories, get_items_by_category, get_category_by_id, get_or_create_user_by_telegram, update_user_phone, get_admin_telegram_ids, create_custom_request
@@ -96,6 +97,7 @@ def _helper2_titles():
         "WANT": "⚜️ میخوام .....⚜️",
     }
     item_titles = {
+        "EMERGENCY_CALL": "🚨 تماس اضطراری",
         "HEALTH_ASSESS": "سنجش سلامت 📋",
         "ALZHEIMER_SCREEN": "🧠 غربالگری آلزایمر",
         "SPECIAL_CHECKUPS": "چکاپ‌های تخصصی 🏥",
@@ -143,6 +145,20 @@ async def helper2_item_selected(update: Update, context: ContextTypes.DEFAULT_TY
             "کافیه دکمه زیر رو بزنی و بعدش متن، ویس 🎙️ یا ویدیوی مدنظرت رو برامون ارسال کنی 🎥"
         )
         await query.edit_message_text(text, reply_markup=helper2_want_request_kb("WANT"), parse_mode=ParseMode.HTML)
+        return 1
+    if cat_key == "PREVENTIVE" and item_key == "EMERGENCY_CALL":
+        text = (
+            "🚨 تماس اضطراری\n"
+            "وقت‌هایی که مسیرهای ارتباطی با ایران دچار اختلال می‌شه 📵 و هیچ راهی برای باخبر شدن از خانواده نداری،\n"
+            "در چنین شرایطی، ریشه تلاش می‌کنه پلی باشه بین تو و عزیزانت 🤍\n"
+            "تا در حد توان، حال خانواده‌ت رو پیگیری کنه و نگذاره بی‌خبر بمونی.\n"
+            "این خدمت کاملاً دلی و رایگانه 🌿\n"
+            "در دوره‌هایی که ارتباطات محدود شد، ریشه با کمک هموطن‌های با‌معرفت در مناطق مرزی 🇮🇷 و با استفاده از رومینگ‌های در دسترس 📡، تلاش کرد صدای خانواده‌ها رو به هم برسونه.\n"
+            "در حال حاضر با پایدار بودن شرایط ارتباطی ✅، این سرویس غیرفعاله؛\n"
+            "اما اگر اختلالی ایجاد بشه، سریع دوباره فعالش می‌کنیم 🔄 تا نذاریم بی‌خبر بمونی.\n"
+            "🤍 همراهی، فقط برای روزهای راحت نیست."
+        )
+        await query.edit_message_text(text, reply_markup=helper2_emergency_info_kb(cat_key), parse_mode=ParseMode.HTML)
         return 1
     if cat_key == "PREVENTIVE" and item_key == "HEALTH_ASSESS":
         text = (

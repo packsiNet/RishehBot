@@ -67,6 +67,7 @@ def helper2_main_kb() -> InlineKeyboardMarkup:
 def helper2_category_kb(category_key: str) -> InlineKeyboardMarkup:
     mapping = {
         "PREVENTIVE": [
+            ("EMERGENCY_CALL", "🚨 تماس اضطراری"),
             ("HEALTH_ASSESS", "📋 سنجش سلامت"),
             ("ALZHEIMER_SCREEN", "🧠 غربالگری آلزایمر"),
             ("SPECIAL_CHECKUPS", "🏥 چکاپ‌های تخصصی"),
@@ -102,6 +103,10 @@ def helper2_item_actions_kb(category_key: str, item_key: str) -> InlineKeyboardM
         [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")],
     ]
     return InlineKeyboardMarkup(buttons)
+
+
+def helper2_emergency_info_kb(category_key: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELP2:CAT:{category_key}")]])
 
 
 def helper2_health_assess_kb(category_key: str) -> InlineKeyboardMarkup:
