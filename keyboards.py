@@ -237,6 +237,15 @@ def after_confirm_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
+def force_join_kb(channel_url: str, category_id: int, idx: int) -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton("عضویت در کانال", url=channel_url)],
+        [InlineKeyboardButton("بررسی عضویت", callback_data=f"HELPER:CHECK_JOIN:{category_id}:{idx}")],
+        [InlineKeyboardButton("⬅️ بازگشت", callback_data=f"HELPER:BACK:OPTIONS:{category_id}")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
 def orders_menu_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton("سفارشات در دست بررسی", callback_data="ORDERS:FILTER:ACTIVE")],

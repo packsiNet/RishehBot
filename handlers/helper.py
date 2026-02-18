@@ -388,7 +388,7 @@ async def helper2_check_channel_and_confirm(update: Update, context: ContextType
     await query.answer()
     _, _, cat_key, item_key = query.data.split(":", 3)
     join_url = os.getenv("MANDATORY_CHANNEL_URL", "https://t.me/+rCWTosVz0hI1Yzlk")
-    channel_id = os.getenv("-1003885629418") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
     user = update.effective_user
     if channel_id:
         try:
@@ -538,12 +538,38 @@ async def _notify_admins_new_order(context: ContextTypes.DEFAULT_TYPE, user_tel_
 
 
 async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Create order immediately and optionally ask for typed phone if missing."""
+    """Create order after mandatory channel check and optionally ask for phone."""
     query = update.callback_query
     await query.answer()
     parts = query.data.split(":")
     category_id = int(parts[2]) if len(parts) > 2 else context.user_data.get("helper_category_id")
     idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
+    user = update.effective_user
+
+    join_url = os.getenv("MANDATORY_CHANNEL_URL")
+    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    if not join_url:
+        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
+        if uname:
+            join_url = f"https://t.me/{uname.lstrip('@')}"
+    if channel_id and user and join_url:
+        try:
+            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
+            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
+                await query.edit_message_text(
+                    "برای ثبت سفارش، عضویت در کانال الزامی است.",
+                    reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                    parse_mode=ParseMode.HTML,
+                )
+                return 1
+        except Exception:
+            await query.edit_message_text(
+                "برای ثبت سفارش، عضویت در کانال الزامی است.",
+                reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                parse_mode=ParseMode.HTML,
+            )
+            return 1
+
     async with get_session() as session:
         items = await get_items_by_category(session, int(category_id)) if category_id else []
         chosen = items[idx - 1].title if isinstance(idx, int) and 0 < idx <= len(items) else None
@@ -584,6 +610,45 @@ async def helper_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         await query.message.reply_text(opt_text)
     return 1
+
+
+async def helper_check_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    parts = query.data.split(":")
+    category_id = int(parts[2]) if len(parts) > 2 else context.user_data.get("helper_category_id")
+    idx = int(parts[3]) if len(parts) > 3 else context.user_data.get("helper_option_idx")
+    user = update.effective_user
+
+    join_url = os.getenv("MANDATORY_CHANNEL_URL")
+    channel_id = os.getenv("MANDATORY_CHANNEL_ID") or os.getenv("MANDATORY_CHANNEL_USERNAME")
+    if not join_url:
+        uname = os.getenv("MANDATORY_CHANNEL_USERNAME")
+        if uname:
+            join_url = f"https://t.me/{uname.lstrip('@')}"
+    if channel_id and user and join_url:
+        try:
+            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user.id)
+            if member.status not in (ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR):
+                await query.edit_message_text(
+                    "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید.",
+                    reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                    parse_mode=ParseMode.HTML,
+                )
+                return 1
+        except Exception:
+            await query.edit_message_text(
+                "هنوز عضویت تأیید نشد. پس از عضویت، دوباره بررسی کنید.",
+                reply_markup=force_join_kb(join_url, int(category_id), int(idx)),
+                parse_mode=ParseMode.HTML,
+            )
+            return 1
+
+    context.user_data["helper_category_id"] = category_id
+    context.user_data["helper_option_idx"] = idx
+    cb = f"HELPER:CONFIRM:{category_id}:{idx}"
+    update.callback_query.data = cb
+    return await helper_confirm(update, context)
 
 
 def _fa_to_en_digits(s: str) -> str:
