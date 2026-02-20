@@ -25,7 +25,6 @@ WELCOME_TEXT = (
     "✨ از منو یکی از مسیرها رو انتخاب کن تا با هم جلو بریم."
 )
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle /start and show the main menu."""
     # Upsert user on first interaction
