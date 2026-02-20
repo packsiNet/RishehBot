@@ -13,7 +13,6 @@ from db.crud import get_or_create_user_by_telegram, set_user_role
 
 from keyboards import main_menu, admin_main_menu
 
-
 WELCOME_TEXT = (
     "🌿 ریشه؛ جایی برای اینکه حتی از دور هم کنار خانواده‌ت باشی\n\n"
     "ریشه برای وقت‌هایی شکل گرفت که از خونه دوری، 🏠\n\n"

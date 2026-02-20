@@ -18,7 +18,6 @@ class Order(Base):
     category_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
     option_title: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    done_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="orders")
 
